@@ -1,0 +1,1207 @@
+import {
+  Box,
+  Button,
+  Card,
+  IconButton,
+  Tooltip,
+  MenuItem,
+  Typography,
+  Paper,
+  Table,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableBody,
+  TextField,
+} from "@mui/material";
+import { DropzoneArea } from "react-mui-dropzone";
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { addDataSet, getReview } from "../../actions/modelAction";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import Papa from "papaparse"
+import { styled } from '@mui/material/styles';
+import * as React from 'react';
+import { tooltipClasses } from '@mui/material/Tooltip';
+import "../../App.css";
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/DeleteOutlined';
+import SaveIcon from '@mui/icons-material/Save';
+import CancelIcon from '@mui/icons-material/Close';
+import InfoIcon from '@mui/icons-material/Info';
+import { DataGrid, GridActionsCellItem, GridRowEditStopReasons, GridRowModes } from "@mui/x-data-grid";
+import EditDialog from "../common/EditDialog";
+import { withStyles } from "@mui/styles";
+import { ArrowBackIos, ArrowForwardIos } from "@mui/icons-material";
+import UploadFileIcon from '@mui/icons-material/UploadFile';
+import LearningPopup from "../common/LearningPopup";
+import TutorialComponent from '../common/TutorialComponent';
+import im from "../../static/images/Import Page.gif";
+import dts from "../../static/images/dataset.gif";
+import dpd from "../../static/images/dependent.gif";
+import idpd from "../../static/images/independent.gif";
+import asset1 from "../../static/images/land/asset-1.png";
+import ml from "../../static/images/Home Page.gif";
+import ml2 from "../../static/images/howitwork.gif";
+import ml3 from "../../static/images/typeofml.gif";
+import sl from "../../static/images/supervisedl.gif";
+import cl from "../../static/images/cl.gif";
+import rg from "../../static/images/rg.gif";
+import EducationalFAB from '../common/Fab';
+import QuizDialog from '../common/QuizDialog';
+import { 
+  mlTutorialData,
+  dataBasicsTutorialData,
+  dataPreprocessingTutorialData,
+  modelTrainingTutorialData,
+  modelEvaluationTutorialData,
+  mlQuizQuestions,
+  dataBasicsQuizQuestions,
+  dataPreprocessingQuizQuestions,
+  modelTrainingQuizQuestions,
+  modelEvaluationQuizQuestions
+} from '../common/LearningContent';
+
+
+
+
+const HtmlTooltip = styled(({ className, ...props }) => (
+  <Tooltip {...props} classes={{ popper: className }} />
+))(({ theme }) => ({
+  [`& .${tooltipClasses.tooltip}`]: {
+    backgroundColor: '#5C5C5C',
+    color: '#ffffff',
+    minWidth: "450px",
+    textAlign: "center",
+    fontSize: theme.typography.pxToRem(14),
+    border: '1px solid #dadde9',
+    borderRadius: '10px',
+    padding: '1em',
+    fontFamily: "'SF Pro Display', sans-serif",
+
+  },
+}));
+
+const CustomTooltip = withStyles({
+  tooltip: {
+    minWidth: "450px",
+    textAlign: "center",
+  }
+})(Tooltip);
+
+const regressionAlgos = [
+  {
+    name: "Medical Expenses Across Families in US",
+    value: "/datasets/Regression/MedicalCost_Prediction_Regression.csv",
+    tooltip:
+      "The dataset provides details on individuals within families. The primary aim is to predict the family's medical expenses (charges column), offering insights into how these attributes contribute to healthcare costs.",
+  },
+  {
+    name: "Car Prices Across Manufacturers, Models and Build",
+    value: "/datasets/Regression/CarPrice_Prediction_Regression.csv",
+    tooltip:
+      "The dataset comprises details about cars. The primary goal is to predict the car's cost (price column), revealing the relationships between these attributes and car prices.",
+  },
+  {
+    name: "Life Expectancy Across Countries, Years and Disease",
+    value: "/datasets/Regression/LifeExpectancy_Prediction_Regression.csv",
+    tooltip:
+      "The dataset provides Life Expectancy information from various countries. The primary aim is to predict life expectancy (Life expectancy column), unveiling the relationships between these attributes and life expectancy outcomes.",
+  },
+];
+
+const classificationAlgos = [
+  {
+    name: "Individual Income, Above or Below 50K per year",
+    value: "/datasets/Classification/Income_Prediction_Classification.csv",
+    tooltip:
+      "The dataset contains individual attributes, with the goal of predicting whether an individual's income exceeds $50,000 (income_>50K).",
+  },
+  {
+    name: "Stroke Risk, Likeliness to Suffer a Stroke",
+    value: "/datasets/Classification/Stroke_Prediction_Classification.csv",
+    tooltip:
+      "The dataset contains individual characteristics, with the goal of predicting the likelihood of experiencing a stroke (stroke),",
+  },
+  {
+    name: "Titanic Survival, Chances to Survive the Tragedy",
+    value: "/datasets/Classification/Titanic_Survival_Classification.csv",
+    tooltip:
+      "The dataset includes individual attributes, with the aim of predicting passenger survival (Survived).",
+  },  
+];
+
+const courseQuizQuestions = [
+  {
+    question: "What is the relationship between Machine Learning and Artificial Intelligence?",
+    options: [
+      "Machine Learning is a completely separate field from AI",
+      "Machine Learning is a superset of AI",
+      "Machine Learning is a subset of AI",
+      "They are the same thing"
+    ],
+    correctAnswer: "Machine Learning is a subset of AI",
+    explanation: "Machine Learning (ML) is defined as a subset of Artificial Intelligence (AI) that allows computers to learn and improve from data without explicit programming."
+  },
+  {
+    question: "What are the main steps in the Machine Learning process?",
+    options: [
+      "Collect data, train model, deploy model",
+      "Define problem, collect data, preprocess data, train model, evaluate model",
+      "Train model, test model, deploy model",
+      "Collect data, clean data, deploy model"
+    ],
+    correctAnswer: "Define problem, collect data, preprocess data, train model, evaluate model",
+    explanation: "ML works through a series of steps: first defining the problem, then collecting relevant data, preprocessing it for analysis, training a model to learn patterns, and finally evaluating the model's performance."
+  },
+  {
+    question: "What are the three main approaches to Machine Learning?",
+    options: [
+      "Predictive, Analytical, and Experimental learning",
+      "Basic, Intermediate, and Advanced learning",
+      "Supervised, Unsupervised, and Reinforcement learning",
+      "Classification, Regression, and Clustering learning"
+    ],
+    correctAnswer: "Supervised, Unsupervised, and Reinforcement learning",
+    explanation: "Machine Learning has three main approaches: Supervised learning (using labeled data), Unsupervised learning (finding hidden patterns), and Reinforcement learning (improving through feedback)."
+  },
+  {
+    question: "What is the key characteristic of supervised learning?",
+    options: [
+      "It requires no data to train",
+      "It uses unlabeled data",
+      "It uses labeled data for training",
+      "It only works with numerical data"
+    ],
+    correctAnswer: "It uses labeled data for training",
+    explanation: "Supervised learning is trained using labeled data, which includes both input features (independent variables) and their corresponding correct outputs (dependent variable or target)."
+  },
+  {
+    question: "What is the main difference between classification and regression in supervised learning?",
+    options: [
+      "Classification is faster than regression",
+      "Classification sorts data into categories while regression predicts numerical values",
+      "Regression is more accurate than classification",
+      "Classification uses more data than regression"
+    ],
+    correctAnswer: "Classification sorts data into categories while regression predicts numerical values",
+    explanation: "Classification is about sorting data into different categories or classes, while regression helps forecast quantities or continuous numerical values."
+  },
+  {
+    question: "What type of questions is regression best suited to answer?",
+    options: [
+      "'Yes or No' questions",
+      "'Which category?' questions",
+      "'How much?' or 'How many?' questions",
+      "'True or False' questions"
+    ],
+    correctAnswer: "'How much?' or 'How many?' questions",
+    explanation: "Regression is useful for answering questions like 'How much?' or 'How many?' as it focuses on forecasting numerical values rather than categorizing data."
+  },
+  {
+    question: "What is a real-world example of classification in action?",
+    options: [
+      "Predicting tomorrow's temperature",
+      "Sorting emails into spam or inbox",
+      "Estimating future sales figures",
+      "Forecasting housing prices"
+    ],
+    correctAnswer: "Sorting emails into spam or inbox",
+    explanation: "Classification is used for sorting data into distinct categories, like sorting emails into spam or inbox, or classifying bird species by photos."
+  },
+  {
+    question: "What type of prediction would require regression analysis?",
+    options: [
+      "Identifying spam emails",
+      "Categorizing bird species",
+      "Predicting house prices",
+      "Sorting items into baskets"
+    ],
+    correctAnswer: "Predicting house prices",
+    explanation: "Regression helps predict continuous numerical values, making it ideal for tasks like predicting house prices, future sales figures, or temperature forecasts."
+  }
+];
+
+const Body = ({ backDialogOpen, setBackDialogOpen }) => {
+  // State declarations
+  const [algoValue, setAlgoValue] = useState("");
+  const [file, setFile] = useState(null);
+  const [fileName, setFileName] = useState("");
+  const [disabled, setDisabled] = useState(false);
+  const [openEdit, setOpenEdit] = useState(false);
+  const [tooltipId, setTooltipId] = useState(0);
+  const [showTutorial, setShowTutorial] = useState(false);
+  const [showQuiz, setShowQuiz] = useState(false);
+  const [isPopupVisible, setPopupVisible] = useState(false);
+  const [currentQuestion, setCurrentQuestion] = useState(null);
+  const [parsedData, setParsedData] = useState([]);
+  const [columns, setColumns] = useState([]);
+  const [values, setValues] = useState([]);
+
+  // FAB state management
+  const [fabOpen, setFabOpen] = useState(false);
+  const [currentTutorialData, setCurrentTutorialData] = useState(dataBasicsTutorialData);
+  const [currentQuizQuestions, setCurrentQuizQuestions] = useState(dataBasicsQuizQuestions);
+
+  // Redux hooks
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const model = useSelector((state) => state.model);
+
+  // Event handlers
+  const handleFabToggle = () => {
+    setFabOpen(!fabOpen);
+  };
+
+  const handleTaskStart = (taskId) => {
+    dispatch({ type: "START_TASK", payload: taskId });
+
+    // Set tutorial/quiz data based on task ID
+    if (taskId.startsWith('tutorial')) {
+      setShowTutorial(true);
+      switch(taskId) {
+        case 'tutorial-1':
+          setCurrentTutorialData(mlTutorialData);
+          break;
+        case 'tutorial-2':
+          setCurrentTutorialData(dataBasicsTutorialData);
+          break;
+        case 'tutorial-3':
+          setCurrentTutorialData(dataPreprocessingTutorialData);
+          break;
+        case 'tutorial-4':
+          setCurrentTutorialData(modelTrainingTutorialData);
+          break;
+        case 'tutorial-5':
+          setCurrentTutorialData(modelEvaluationTutorialData);
+          break;
+      }
+    } else if (taskId.startsWith('quiz')) {
+      setShowQuiz(true);
+      switch(taskId) {
+        case 'quiz-1':
+          setCurrentQuizQuestions(mlQuizQuestions);
+          break;
+        case 'quiz-2':
+          setCurrentQuizQuestions(dataBasicsQuizQuestions);
+          break;
+        case 'quiz-3':
+          setCurrentQuizQuestions(dataPreprocessingQuizQuestions);
+          break;
+        case 'quiz-4':
+          setCurrentQuizQuestions(modelTrainingQuizQuestions);
+          break;
+        case 'quiz-5':
+          setCurrentQuizQuestions(modelEvaluationQuizQuestions);
+          break;
+      }
+    }
+  };
+
+  const handleTaskComplete = (taskId) => {
+    dispatch({ type: "COMPLETE_TASK", payload: taskId });
+    
+    // Get section index from task ID
+    const sectionIndex = parseInt(taskId.slice(-1)) - 1;
+    
+    if (sectionIndex >= 0 && sectionIndex < 5) {
+      dispatch({ 
+        type: "UPDATE_PROGRESS", 
+        payload: {
+          sectionIndex,
+          type: taskId.includes('tutorial') ? 'tutorial' : 'quiz',
+          complete: true
+        }
+      });
+    }
+  };
+
+  const handleTutorialComplete = () => {
+    const currentTutorialId = currentTutorialData === mlTutorialData ? 'tutorial-1' : 
+                            currentTutorialData === dataBasicsTutorialData ? 'tutorial-2' : 
+                            currentTutorialData === dataPreprocessingTutorialData ? 'tutorial-3' :
+                            currentTutorialData === modelTrainingTutorialData ? 'tutorial-4' :
+                            'tutorial-5';
+    handleTaskComplete(currentTutorialId);
+    setShowTutorial(false);
+  };
+
+  const handleQuizComplete = (score) => {
+    const currentQuizId = currentQuizQuestions === mlQuizQuestions ? 'quiz-1' : 
+                         currentQuizQuestions === dataBasicsQuizQuestions ? 'quiz-2' : 
+                         currentQuizQuestions === dataPreprocessingQuizQuestions ? 'quiz-3' :
+                         currentQuizQuestions === modelTrainingQuizQuestions ? 'quiz-4' :
+                         'quiz-5';
+    handleTaskComplete(currentQuizId);
+    setShowQuiz(false);
+  };
+
+  const handleQuizRedo = () => {
+    // Get current quiz ID
+    const currentQuizId = currentQuizQuestions === mlQuizQuestions ? 'quiz-1' : 
+                         currentQuizQuestions === dataBasicsQuizQuestions ? 'quiz-2' : 
+                         currentQuizQuestions === dataPreprocessingQuizQuestions ? 'quiz-3' :
+                         currentQuizQuestions === modelTrainingQuizQuestions ? 'quiz-4' :
+                         'quiz-5';
+    
+    // Get section index from quiz ID
+    const sectionIndex = parseInt(currentQuizId.slice(-1)) - 1;
+    
+    dispatch({ 
+      type: "UPDATE_PROGRESS",
+      payload: {
+        sectionIndex,
+        type: 'quiz',
+        complete: false
+      }
+    });
+    dispatch({ type: "RESET_TASK", payload: currentQuizId });
+    setShowQuiz(true);
+    // Keep current quiz questions
+  };
+
+  const handleAlgoChange = (e) => {
+    setAlgoValue(e.target.value);
+  };
+
+  const questionsData = [
+    {
+      section: "Preprocessing",
+      currentQuestion: 1,
+      totalQuestions: 3,
+      title: "Understanding Missing Values",
+      question: "The 'Age' column has some missing values. Why might dropping all rows with missing ages be problematic for our prediction?",
+      options: [
+        "A) We might lose too much valuable data",
+        "B) Missing ages could be random and unimportant",
+        "C) Age doesn't affect survival chances",
+        "D) It's better to always remove incomplete data"
+      ],
+      correctAnswer: 0,
+      explanation: "Dropping all rows with missing ages could significantly reduce our dataset size and potentially introduce bias if the missing values aren't random."
+    },
+    {
+      section: "Feature Engineering",
+      currentQuestion: 2,
+      totalQuestions: 3,
+      title: "Handling Categorical Variables",
+      question: "What is one common method to handle categorical variables in machine learning?",
+      options: [
+        "A) One-Hot Encoding",
+        "B) Ignoring them",
+        "C) Using them as is",
+        "D) Converting to numerical values directly"
+      ],
+      correctAnswer: 0,
+      explanation: "One-Hot Encoding is a common method to convert categorical variables into a format that can be provided to ML algorithms."
+    }
+  ];
+
+const openPopup = (index) => {
+  setCurrentQuestion(questionsData[index]); // Set the current question based on the clicked element
+  setPopupVisible(true); // Show the popup
+};
+
+ // Custom tutorial data structure
+ const customTutorialData = {
+  "tab1": {
+    label: "Data Basics",
+    title: "Data Basics",
+    subtitle: "Understanding the Foundation of Machine Learning",
+    image: im,
+    sections: [
+      {
+        id: "section1_1",
+        title: "Types of data",
+        content: "There are two types of data in machine learning: numerical and categorical. Numerical data includes continuous values, like height or temperature, and discrete counts, like the number of rooms in a house. Categorical data is divided into nominal categories, which have no order (e.g., colors like red, blue), and ordinal categories, which have a meaningful order (e.g., rankings like small, medium, large). Both types are essential to represent diverse information and uncover patterns in machine learning tasks.",
+        image: im
+      },
+      {
+        id: "section1_2",
+        title: "What kind of dataset can be used for ML?",
+        content: "Imagine you're putting together a puzzle. To do this, you need two things: the puzzle pieces (features) and the picture on the box to guide you (target). In machine learning, datasets work the same way. Machine learning uses datasets with input features and a target variable to teach models how to make predictions.",
+        image: dts
+      }
+    ]
+  },
+  "tab2": {
+    label: "Key Parts of a Dataset",
+    title: "Key Parts of a Dataset",
+    subtitle: "Breaking Down the Elements of Data",
+    image: asset1,
+    sections: [
+      {
+        id: "section2_1",
+        title: "What is dependent variable?",
+        content: "Dependent variables, also known as targets, represent the outcome or value that a model aims to predict or explain—the equivalent of the \"picture on the box\" that guides the puzzle assembly. For example, in a task like predicting house prices, the target would be the actual price of the house, serving as the benchmark against which the model's predictions are evaluated. These variables are influenced by independent variables (features), which provide the input data used to make predictions.",
+        image: dpd
+      },
+      {
+        id: "section2_2",
+        title: "What are independent variables?",
+        content: "Independent variables, also known as features, are the inputs or puzzle pieces. They help the model understand what factors might influence an outcome. For example, in predicting house prices, features could include square footage, number of bedrooms, and location.",
+        image: idpd
+      }
+    ]
+  }
+};
+
+  const handleAlgoClick = async (algoValue) => {
+    try {
+      console.log('Algo Value:', algoValue); 
+      setAlgoValue(algoValue); // Set the algoValue state
+      const response = await fetch(`${algoValue}`);
+      
+      const csvData = await response.text();
+      // Convert CSV string into a Blob
+      const csvBlob = new Blob([csvData], { type: 'text/csv' });
+
+      // Create a File object from the Blob
+      const csvFile = new File([csvBlob], `${algoValue.split('/').pop()}`, { type: 'text/csv' });
+
+      // Call onSelect with the File object
+      onSelect([csvFile]);
+
+      // Additional logic specific to handleAlgoClick if needed
+
+    } catch (error) {
+      console.error('Error loading CSV:', error);
+    }
+  };
+  
+
+  useEffect(() => {
+    setTooltipId(model.mode);
+  }, [model]);
+
+  useEffect(() => {
+    if (tooltipId === 9 || tooltipId === 15) dispatch({ type: "TOGGLE_MODE", payload: tooltipId });
+  }, [tooltipId])
+
+  const onChange = (file) => {
+    setFile(file);
+    setFileName("");
+    setDisabled(true);
+  };
+
+  const onSelect = (files) => {
+    if (files && files[0]) {
+      handleFileUpload(files[0]);
+    }
+  };
+
+  const handleFileUpload = (file) => {
+    if (file) {
+      console.log(file);
+      setFile(file);
+      setFileName("");
+      setDisabled(true);
+      Papa.parse(file, {
+        header: true,
+        skipEmptyLines: true,
+        complete: function (results) {
+          const columnsArray = [];
+          const valuesArray = [];
+  
+          // Iterating data to get column name and their values
+          results.data.forEach((d) => {
+            columnsArray.push(Object.keys(d));
+            valuesArray.push(Object.values(d));
+          });
+  
+          // Parsed Data Response in array format
+          setParsedData(results.data);
+  
+          // Filtered Column Names
+          setColumns(columnsArray[0]);
+  
+          // Filtered Values
+          setValues(valuesArray);
+        },
+      });
+    }
+  };
+
+
+  const onDelete = (files) => {
+    setFile(null);
+    setFileName("");
+    setDisabled(false);
+  };
+  const onClick = () => {
+    dispatch(addDataSet(file));
+    dispatch(getReview(file));
+    navigate('/review');
+  };
+
+  const handleOpen = () => { };
+
+  const handleClose = () => { };
+
+  return model.isLoading ? (
+    <Typography
+      sx={{
+        fontSize: "1.5rem",
+        fontWeight: "bolder",
+        fontFamily: "'SF Pro Display', sans-serif",
+      }}
+    >
+      Import
+    </Typography>
+  ) : (
+    <Card className="main"
+      sx={{
+        flex: 1,
+        backgroundColor: "#F8FAFC",
+        overflowX: "hidden",
+        overflowY: "auto",
+        padding: "30px",
+      }}
+    >
+      <Paper 
+        sx={{ 
+          width: "100%", 
+          height: "100%", 
+          padding: "32px", 
+          borderRadius: "24px",
+          boxShadow: "0 4px 24px rgba(0, 0, 0, 0.05)"
+        }}
+      >
+        {/* Header Section */}
+        <Box 
+          sx={{ 
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            mb: 4
+          }}
+        >
+          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+            <IconButton 
+              onClick={() => setBackDialogOpen(true)}
+              sx={{
+                backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                '&:hover': {
+                  backgroundColor: 'rgba(0, 0, 0, 0.08)'
+                }
+              }}
+            >
+              <ArrowBackIcon />
+            </IconButton>
+            <Box>
+            <Typography
+                variant="h4"
+              sx={{
+                  fontSize: { xs: "1.5rem", sm: "1.75rem", md: "1.2rem" },
+                  fontWeight: 700,
+                  fontFamily: "'SF Pro Display', sans-serif",
+                  color: "#1E293B",
+                  mb: 0.5
+                }}
+              >
+                Import Dataset
+              </Typography>
+              <Typography
+                sx={{
+                  fontSize: { xs: "0.8rem", sm: "0.95rem", md: ".95rem" },
+                  fontWeight: 400,
+                  fontFamily: "'SF Pro Display', sans-serif",
+                  color: "#64748B"
+                }}
+              >
+                Upload your data or choose from our curated datasets
+            </Typography>
+            </Box>
+          </Box>
+          <CustomTooltip
+            open={tooltipId === 10 ? true : false}
+            onOpen={handleOpen}
+            onClose={handleClose}
+            title={
+              <Box padding="10px" display="flex" flexDirection="column" gap="10px">
+                <Typography>You can rename the project title on any page by clicking
+                  and renaming it in the dialog.</Typography>
+                <Box style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <Button variant="contained" startIcon={<ArrowBackIos />} onClick={() => setTooltipId(9)}>PREVIOUS</Button>
+                  <Button variant="contained" endIcon={<ArrowForwardIos />} onClick={() => setTooltipId(11)}>NEXT</Button>
+                </Box>
+              </Box>
+            }
+            placement="left"
+            arrow
+          >
+            <Paper
+              onClick={() => setOpenEdit(true)}
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                padding: "12px 20px",
+                borderRadius: "12px",
+                cursor: "pointer",
+                transition: "all 0.2s",
+                border: "1px solid rgba(0, 0, 0, 0.08)",
+                '&:hover': {
+                  backgroundColor: 'rgba(0, 0, 0, 0.02)',
+                  transform: 'translateY(-1px)',
+                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)'
+                }
+              }}
+            >
+              <img 
+                src={`/img/${model.type}.png`} 
+                alt={model.type}
+                style={{ 
+                  width: 24, 
+                  height: 24,
+                  marginRight: 12
+                }}
+              />
+        <Typography
+          sx={{
+            fontSize: "1.1rem",
+                  fontWeight: 600,
+                fontFamily: "'SF Pro Display', sans-serif",
+                  color: "#1E293B"
+          }}
+        >
+                {model.name}
+        </Typography>
+            </Paper>
+          </CustomTooltip>
+              </Box>
+
+        {/* Import Section */}
+        <Box 
+          sx={{ 
+            display: "flex",
+            gap: 4,
+            mb: 4
+          }}
+        >
+          {/* Upload Box */}
+            <Box 
+            sx={{              
+              flex: 1,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 2
+            }}
+          >
+            <Typography
+              variant="h6"
+              sx={{
+                fontSize: "1.1rem",
+                fontWeight: 600,
+                fontFamily: "'SF Pro Display', sans-serif",
+                color: "#1E293B",
+                mb: 1
+              }}
+            >
+              Upload CSV File
+            </Typography>
+            <CustomTooltip
+          open={tooltipId === 11 ? true : false}
+          onOpen={handleOpen}
+          onClose={handleClose}
+          title={
+            <Box padding="10px" display="flex" flexDirection="column" gap="10px">
+              <Typography>Uploading your data is simple! Import a CSV file or Select from the Dropdown.</Typography>
+              <Box style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <Button variant="contained" startIcon={<ArrowBackIos />} onClick={() => setTooltipId(10)}>PREVIOUS</Button>
+                <Button variant="contained" endIcon={<ArrowForwardIos />} onClick={() => setTooltipId(12)}>NEXT</Button>
+              </Box>
+            </Box>
+          }
+          placement="top"
+          arrow
+        >
+            <Paper
+              sx={{
+                border: "2px dashed rgba(0, 0, 0, 0.12)",
+                borderRadius: "2px",
+                backgroundColor: "rgba(0, 0, 0, 0.02)",
+                height: "100%",
+                minHeight: "200px"
+              }}
+              >
+            <DropzoneArea
+                dropzoneText={""}
+                Icon={({ file, iconClassName, classNames }) => (
+                  <Box 
+                    sx={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: 2
+                    }}
+                  >
+                  <UploadFileIcon
+                    className={iconClassName}
+                      sx={{ 
+                        fontSize: '48px',
+                        color: '#64748B'
+                      }}
+                    />
+                    <Typography
+                      sx={{
+                        fontSize: "0.95rem",
+                        fontWeight: 500,
+                        fontFamily: "'SF Pro Display', sans-serif",
+                        color: "#64748B",
+                        textAlign: 'center'
+                      }}
+                    >
+                      Drag and drop your CSV file here<br />
+                      or click to browse
+                    </Typography>
+                  </Box>
+                )}
+                filesLimit={1}
+                onChange={onSelect}
+                maxFileSize={30000000}
+                onDelete={onDelete}
+                showPreviewsInDropzone={false}
+                useChipsForPreview
+                previewText="Uploaded file"
+                acceptedFiles={["text/csv"]}
+              />
+            </Paper>
+            </CustomTooltip>
+            </Box>
+
+          {/* Divider */}
+          <Box 
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+          >
+            <Box
+              sx={{
+                width: 0.2,
+                height: '100%',
+                // backgroundColor: 'rgba(0, 0, 0, 0.08)',
+                my: 2
+              }}
+            />
+            <Typography
+              sx={{
+                fontSize: "0.9rem",
+                fontWeight: 600,
+                fontFamily: "'SF Pro Display', sans-serif",
+                color: "#64748B",
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em'
+              }}
+            >
+              OR
+            </Typography>
+            <Box
+              sx={{
+                width: .2,
+                height: '100%',
+                // backgroundColor: 'rgba(0, 0, 0, 0.08)',
+                my: 2
+              }}
+            />
+          </Box>
+          
+
+          {/* Dataset Selection */}
+          <Box 
+            sx={{ 
+              flex: 1,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 2
+            }}
+          >           
+            <Typography
+              variant="h6"
+              sx={{
+                fontSize: "1.1rem",
+                fontWeight: 600,
+                fontFamily: "'SF Pro Display', sans-serif",
+                color: "#1E293B",
+                mb: 1
+              }}
+            >
+              Choose from Sample Datasets
+            </Typography>
+            
+            {/* Dataset Preview with Image and Description */}
+            <Box sx={{ 
+              display: 'flex', 
+              flexDirection: 'column', 
+              gap: 2,
+              height: '100%'
+            }}>
+              {/* Dynamic Image */}
+              <Box 
+                sx={{ 
+                  height: '140px', 
+                  borderRadius: '12px',
+                  overflow: 'hidden',
+                  border: '1px solid rgba(0, 0, 0, 0.08)',
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  backgroundColor: '#f8fafc'
+                }}
+              >
+                <img 
+                  src={model.type === "Regression" 
+                    ? `/datasets/images/${algoValue.split('/').pop().replace('.csv', '')}.png` 
+                    : `/datasets/images/${algoValue.split('/').pop().replace('.csv', '')}.png`}
+                  alt="Dataset preview"
+                  style={{ 
+                    maxWidth: '100%', 
+                    maxHeight: '100%', 
+                    objectFit: 'contain',
+                    opacity: algoValue ? 1 : 0.3
+                  }}
+                  onError={(e) => {
+                    e.target.src = '/datasets/images/default-dataset.png';
+                  }}
+                />
+              </Box>
+              
+              {/* Dataset Description */}
+              <Box sx={{ mb: 2 }}>
+                <Typography
+                  sx={{
+                    fontSize: "1rem",
+                    fontWeight: 600,
+                    fontFamily: "'SF Pro Display', sans-serif",
+                    color: "#1E293B",
+                    mb: 0.5
+                  }}
+                >
+                  {algoValue ? (model.type === "Regression" 
+                    ? regressionAlgos.find(algo => algo.value === algoValue)?.name 
+                    : classificationAlgos.find(algo => algo.value === algoValue)?.name) 
+                    : "Select a dataset"}
+                </Typography>
+                <Typography
+                  sx={{
+                    fontSize: "0.85rem",
+                    fontWeight: 400,
+                    fontFamily: "'SF Pro Display', sans-serif",
+                    color: "#64748B",
+                    height: '40px',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    display: '-webkit-box',
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: 'vertical'
+                  }}
+                >
+                  {algoValue ? (model.type === "Regression" 
+                    ? regressionAlgos.find(algo => algo.value === algoValue)?.tooltip 
+                    : classificationAlgos.find(algo => algo.value === algoValue)?.tooltip) 
+                    : "Choose a dataset from the options below"}
+                </Typography>
+              </Box>
+              
+              {/* Tabbed Button Group */}
+              <Box 
+                sx={{ 
+                  display: 'flex',
+                  borderRadius: '12px',
+                  overflow: 'hidden',
+                  border: '1px solid rgba(0, 0, 0, 0.12)'
+                }}
+              >
+                {model.type === "Regression" ? (
+                  regressionAlgos.map((algo, index) => (
+                    <Button
+                      key={algo.value}
+                      onClick={() => handleAlgoClick(algo.value)}
+                      sx={{
+                        flex: 1,
+                        py: 1.5,
+                        borderRadius: 0,
+                        borderRight: index < regressionAlgos.length - 1 ? '1px solid rgba(0, 0, 0, 0.12)' : 'none',
+                        backgroundColor: algoValue === algo.value ? '#2563EB' : 'transparent',
+                        color: algoValue === algo.value ? 'white' : '#64748B',
+                        fontFamily: "'SF Pro Display', sans-serif",
+                        fontWeight: 500,
+                        textTransform: 'none',
+                        '&:hover': {
+                          backgroundColor: algoValue === algo.value ? '#1D4ED8' : 'rgba(0, 0, 0, 0.04)'
+                        }
+                      }}
+                    >
+                      {`Dataset ${index + 1}`}
+                    </Button>
+                  ))
+                ) : (
+                  classificationAlgos.map((algo, index) => (
+                    <Button
+                      key={algo.value}
+                      onClick={() => handleAlgoClick(algo.value)}
+                      sx={{
+                        flex: 1,
+                        py: 1.5,
+                        borderRadius: 0,
+                        borderRight: index < classificationAlgos.length - 1 ? '1px solid rgba(0, 0, 0, 0.12)' : 'none',
+                        backgroundColor: algoValue === algo.value ? '#2563EB' : 'transparent',
+                        color: algoValue === algo.value ? 'white' : '#64748B',
+                        fontFamily: "'SF Pro Display', sans-serif",
+                        fontWeight: 500,
+                        textTransform: 'none',
+                        '&:hover': {
+                          backgroundColor: algoValue === algo.value ? '#1D4ED8' : 'rgba(0, 0, 0, 0.04)'
+                        }
+                      }}
+                    >
+                      {`Dataset ${index + 1}`}
+                    </Button>
+                  ))
+                )}
+              </Box>
+            </Box>
+          </Box>
+
+        {/* Preview Section */}
+        <Box>
+          <Box 
+            sx={{ 
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              mb: 3
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <CustomTooltip
+              open={tooltipId === 12 ? true : false}
+              onOpen={handleOpen}
+              onClose={handleClose}
+              title={
+                <Box padding="10px" display="flex" flexDirection="column" gap="10px">
+                  <Typography>Once uploaded, preview your data to ensure everything
+                    looks right. This is the first look at your dataset.</Typography>
+                  <Box style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <Button variant="contained" startIcon={<ArrowBackIos />} onClick={() => setTooltipId(11)}>PREVIOUS</Button>
+                    <Button variant="contained" endIcon={<ArrowForwardIos />} onClick={() => setTooltipId(13)}>NEXT</Button>
+                  </Box>
+                </Box>
+              }
+              placement="top"
+              arrow
+            >
+              <Typography
+                variant="h6"
+                sx={{
+                  fontSize: "1.2rem",
+                  fontWeight: 600,
+                  fontFamily: "'SF Pro Display', sans-serif",
+                  color: "#1E293B"
+                }}
+              >
+                Dataset Preview
+              </Typography>
+              </CustomTooltip>
+              <HtmlTooltip 
+                placement="right"
+                title={
+                  <React.Fragment>
+              <Typography
+                sx={{
+                          fontWeight: "bold", 
+                  fontFamily: "'SF Pro Display', sans-serif",
+                          mb: 1
+                }}
+              >
+                      Column Types Guide
+            </Typography>
+                    <Box sx={{ mb: 2 }}>
+                      <Typography 
+                        sx={{ 
+                          fontWeight: 600,
+                          color: '#2563EB',
+                          mb: 0.5
+                        }}
+                      >
+                        Target Column:
+                      </Typography>
+                      <Typography sx={{ fontSize: '0.9rem' }}>
+                        The column your model will predict (e.g., Price, Category)
+                      </Typography>
+                    </Box>
+                    <Box>
+                      <Typography 
+                        sx={{ 
+                          fontWeight: 600,
+                          color: '#2563EB',
+                          mb: 0.5
+                        }}
+                      >
+                        Identifier Column:
+                      </Typography>
+                      <Typography sx={{ fontSize: '0.9rem' }}>
+                        Unique record identifiers (e.g., ID, CustomerID)
+                      </Typography>
+                  </Box>
+                  </React.Fragment>
+                }
+              >
+                <InfoIcon 
+                  fontSize="small" 
+                  sx={{ 
+                    color: "#64748B",
+                    cursor: 'pointer'
+                  }} 
+                />
+              </HtmlTooltip>
+                    </Box>
+            <Button
+              variant="contained"
+              disabled={!disabled && fileName === ""}
+              onClick={onClick}
+              sx={{ 
+                borderRadius: "12px",
+                textTransform: 'none',
+                fontFamily: "'SF Pro Display', sans-serif",
+                fontWeight: 600,
+                px: 4,
+                backgroundColor: '#2563EB',
+                '&:hover': {
+                  backgroundColor: '#1D4ED8'
+                }
+              }}
+            >
+              Analyze Dataset
+            </Button>
+
+          </Box>
+
+          <Typography
+            sx={{
+              fontSize: "0.95rem",
+              fontWeight: 400,
+              fontFamily: "'SF Pro Display', sans-serif",
+              color: "#64748B",
+              mb: 2
+            }}
+          >
+            Review your data and identify target and identifier columns
+          </Typography>
+          <CustomTooltip
+              open={tooltipId === 13 || tooltipId === 14 ? true : false}
+              onOpen={handleOpen}
+              onClose={handleClose}
+              title={
+                tooltipId === 13 ? (
+                  <Box padding="10px" display="flex" flexDirection="column" gap="10px">
+                    <Typography>Identify the prediction column: This is what you want to predict.
+                      It could be the price of a house, whether an email is spam, etc.</Typography>
+                    <Box style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <Button variant="contained" startIcon={<ArrowBackIos />} onClick={() => setTooltipId(12)}>PREVIOUS</Button>
+                      <Button variant="contained" endIcon={<ArrowForwardIos />} onClick={() => setTooltipId(14)}>NEXT</Button>
+                    </Box>
+                  </Box>
+                ) : (
+                  <Box padding="10px" display="flex" flexDirection="column" gap="10px">
+                    <Typography>Identify the relevant columns: These are factors that might influence your
+                      prediction column. For instance, the number of rooms might affect a house's price.</Typography>
+                    <Box style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <Button variant="contained" startIcon={<ArrowBackIos />} onClick={() => setTooltipId(13)}>PREVIOUS</Button>
+                      <Button variant="contained" endIcon={<ArrowForwardIos />} onClick={() => setTooltipId(15)}>NEXT</Button>
+                    </Box>
+                  </Box>
+                )
+              }
+              placement="top"
+              arrow
+            >
+          <Paper 
+            sx={{
+              borderRadius: '16px',
+              overflow: 'hidden',
+              border: '1px solid rgba(0, 0, 0, 0.08)',
+              height: '100%',
+              maxHeight: '400px'
+            }}
+          >
+            <Table 
+              stickyHeader 
+              sx={{
+                    '& .MuiTableCell-root': {
+                  padding: '12px 16px',
+                  minWidth: '120px',
+                  maxWidth: '300px',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                  fontFamily: "'SF Pro Display', sans-serif",
+                  fontSize: '0.9rem'
+                    },
+                    '& .MuiTableCell-head': {
+                  backgroundColor: '#F8FAFC',
+                  fontWeight: 600,
+                  color: '#1E293B',
+                  borderBottom: '2px solid rgba(0, 0, 0, 0.08)'
+                },
+                '& .MuiTableBody-root .MuiTableRow-root:hover': {
+                  backgroundColor: 'rgba(0, 0, 0, 0.02)'
+                }
+              }}
+            >
+                    <TableHead>
+                        <TableRow>
+                  {columns.map((rows, index) => (
+                    <TableCell key={index}>{rows}</TableCell>
+                  ))}
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                {values.slice(0, 5).map((value, index) => (
+                                <TableRow key={index}>
+                    {value.map((val, i) => (
+                      <TableCell key={i}>{val}</TableCell>
+                    ))}
+                                </TableRow>
+                ))}
+                    </TableBody>
+                </Table>
+          </Paper>
+          </CustomTooltip>
+            </Box>
+        </Box>
+      </Paper>
+
+      <EditDialog open={openEdit} setOpen={setOpenEdit} modelName={model.name} />
+      <TutorialComponent
+        tutorialData={currentTutorialData}
+        isVisible={showTutorial}
+        onClose={() => setShowTutorial(false)}
+        onComplete={handleTutorialComplete}
+        conceptName={currentTutorialData === mlTutorialData ? "Machine Learning" : "Data Basics"}
+      />
+      <QuizDialog
+        open={showQuiz}
+        onClose={() => setShowQuiz(false)}
+        questions={currentQuizQuestions}
+        onComplete={handleQuizComplete}
+        onRedo={() => handleQuizRedo()}
+        conceptName={currentQuizQuestions === courseQuizQuestions ? "Machine Learning" : "Data Basics"}
+      />
+      <EducationalFAB 
+        open={fabOpen}
+        onToggle={handleFabToggle}
+        onTaskStart={handleTaskStart}
+        onTaskComplete={handleTaskComplete}
+        onQuizRedo={handleQuizRedo}
+        currentPage="dataset"
+        sx={{ zIndex: 1300 }}
+      />
+    </Card>
+  );
+};
+
+export default Body;
