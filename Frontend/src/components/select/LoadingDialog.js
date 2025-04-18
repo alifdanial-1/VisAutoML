@@ -15,6 +15,9 @@ import { styled } from '@mui/material/styles';
 import { tooltipClasses } from '@mui/material/Tooltip';
 import { Carousel } from "react-responsive-carousel";
 import 'react-responsive-carousel/lib/styles/carousel.min.css';
+import Cookies from 'js-cookie';
+import axios from "axios";
+import CircularProgress from "@mui/material/CircularProgress";
 
 
 const HtmlTooltip = styled(({ className, ...props }) => (
@@ -59,9 +62,50 @@ const images = [
 ];
 
 const LoadingDialog = ({ open, setOpen, response }) => {
+  const modelId = Cookies.get('sucessModelId');
   const navigate = useNavigate();
 
   const [progress, setProgress] = useState(0);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (open) {
+      const timer = setInterval(() => {
+        setProgress((old) => {
+          const newProgress = Math.min(old + 100 / 450, 100);
+          if (newProgress === 100) clearInterval(timer);
+          return newProgress;
+        });
+      }, 100);
+      return () => clearInterval(timer);
+    }
+  }, [open]);
+
+  const handleExplore = async () => {
+    const modelId = Cookies.get("sucessModelId");
+    if (!modelId || modelId === "undefined") {
+      alert("Model ID missing or invalid.");
+      return;
+    }
+  
+    setLoading(true);
+    try {
+      const res = await axios.post(`http://localhost:8000/api/dashboard/${modelId}/`);
+      const dashboardUrl = res?.data?.url;
+  
+      if (dashboardUrl) {
+        await new Promise(resolve => setTimeout(resolve, 8000));
+        navigate(`/explain/${modelId}`, { state: { dashboardUrl } });
+      } else {
+        alert("Dashboard failed to start.");
+      }
+    } catch (err) {
+      console.error("Dashboard launch error:", err);
+      alert("Error launching dashboard");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (response) {      
@@ -154,10 +198,18 @@ const LoadingDialog = ({ open, setOpen, response }) => {
  }}>
           Cancel
         </Button>
-        <Button onClick={() => navigate('/model')} variant={progress === 100 ? "outlined" : "disabled"} sx={{ marginRight: "15px", marginBottom: "10px", fontFamily: "'SF Pro Display', sans-serif",
- }}>
-          Explore Model
+        <Button 
+          onClick={handleExplore} 
+          variant={progress === 100 ? "outlined" : "disabled"}
+          sx={{ marginRight: "15px", marginBottom: "10px", fontFamily: "'SF Pro Display', sans-serif" }}
+        >
+          Explore Model 
         </Button>
+        {loading && (
+          <Box sx={{ display: "flex", justifyContent: "center", mt: 1 }}>
+            <CircularProgress />
+          </Box>
+        )}
       </DialogActions>
     </Dialog>
   );

@@ -175,6 +175,7 @@ const Body = () => {
   const [tableFilterAnchorEl, setTableFilterAnchorEl] = useState(null);
   const [sortBy, setSortBy] = useState('');
   const [sortOrder, setSortOrder] = useState('asc');
+  const [dashboardUrl, setDashboardUrl] = useState(null);
 
   const config = {
     headers: {
@@ -1834,6 +1835,8 @@ const Body = () => {
                         sortOrder={sortOrder}
                         setSortOrder={setSortOrder}
                         rowsPerPage={{ lg: 4, md: 4 }}
+                        setDashboardUrl={setDashboardUrl}
+                        dashboardUrl={dashboardUrl}
                       />
                     )}
                   </Grid>

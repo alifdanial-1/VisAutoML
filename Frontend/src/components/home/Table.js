@@ -22,7 +22,7 @@ import "../../App.css";
 import LoadingDialog from "./LoadingDialog";
 import { Backdrop, CircularProgress } from "@mui/material";
 
-const TableComponent = ({ rows, setPosts, sortBy, setSortBy, sortOrder, setSortOrder, rowsPerPage = { lg: 4, md: 4 } }) => {
+const TableComponent = ({ rows, setPosts, sortBy, setSortBy, sortOrder, setSortOrder, rowsPerPage = { lg: 4, md: 4 }, setDashboardUrl, dashboardUrl }) => {
   const dispatch = useDispatch();
   const csrfToken = Cookies.get("csrftoken");
   const config = {
@@ -113,22 +113,21 @@ const TableComponent = ({ rows, setPosts, sortBy, setSortBy, sortOrder, setSortO
       }
     });
   };
-
-  const handleOpen = (id) => {
+  
+  const handleOpen = async (id) => {
     setSelectedModelId(id);
     setLoadingDialogOpen(true);
-    axios
-      .post(BACKEND_BASE_URL + 'dashboard/' + id + '/', config)
-      .then(res => {
-        if(res.data === 'Success') {
-          setLoadingOpen(false);
-        }
-      })
-      .catch(err => {
-        console.log(err);
-        setLoadingOpen(false);
-        setLoadingDialogOpen(false);
-      });
+  
+    try {
+      const { data } = await axios.post(BACKEND_BASE_URL + `dashboard/${id}/`, config);
+      const url = data?.url;
+  
+      setDashboardUrl(url);
+    } catch (err) {
+      setLoadingDialogOpen(false);
+      console.error("Dashboard launch failed:", err);
+      alert("Something went wrong launching the dashboard.");
+    }
   };
 
   const formatAlgorithmName = (name) => {
@@ -353,6 +352,8 @@ const TableComponent = ({ rows, setPosts, sortBy, setSortBy, sortOrder, setSortO
       <LoadingDialog 
         open={loadingDialogOpen} 
         setOpen={setLoadingDialogOpen}
+        modelId={selectedModelId}
+        dashboardUrl={dashboardUrl}
       />
 
       <Dialog

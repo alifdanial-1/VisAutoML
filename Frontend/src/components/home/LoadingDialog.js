@@ -58,7 +58,7 @@ const images = [
   }
 ];
 
-const LoadingDialog = ({ open, setOpen }) => {
+const LoadingDialog = ({ open, setOpen, modelId, dashboardUrl }) => {
   const navigate = useNavigate();
 
   const [progress, setProgress] = useState(0);
@@ -146,10 +146,39 @@ const LoadingDialog = ({ open, setOpen }) => {
  }}>
           Cancel
         </Button>
-        <Button onClick={() => navigate('/model')} variant={progress === 100 ? "outlined" : "disabled"} sx={{ marginRight: "15px", marginBottom: "10px", fontFamily: "'SF Pro Display', sans-serif",
- }}>
+        <Button
+          onClick={async () => {
+            const url = dashboardUrl;
+            let retries = 10;
+            let ready = false;
+
+            while (retries > 0) {
+              try {
+                const res = await fetch(url, { mode: 'no-cors' });
+                ready = true;
+                break;
+              } catch {
+                await new Promise(res => setTimeout(res, 1000));
+                retries--;
+              }
+            }
+
+            if (ready) {
+              setOpen(false);
+              navigate(`/explain/${modelId}`, { state: { dashboardUrl: url } });
+            } else {
+              alert("Dashboard isn't ready yet. Please try again.");
+            }
+          }}
+          disabled={progress !== 100}
+          variant="outlined"
+          sx={{
+            marginRight: "15px",
+            marginBottom: "10px",
+            fontFamily: "'SF Pro Display', sans-serif"
+          }}>
           Explore Model
-        </Button>
+      </Button>
       </DialogActions>
     </Dialog>
   );

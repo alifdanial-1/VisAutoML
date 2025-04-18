@@ -30,6 +30,10 @@ import {
   modelTrainingQuizQuestions,
   modelEvaluationQuizQuestions
 } from "../common/LearningContent";
+import { useParams, useLocation } from "react-router-dom";
+import axios from "axios";
+import { BACKEND_BASE_URL } from "../../config/config";
+import Cookies from "js-cookie";
 
 // Import images for tutorials
 import ml from "../../static/images/Home Page.gif";
@@ -55,6 +59,57 @@ const Body = ({ backDialogOpen, setBackDialogOpen }) => {
   const [showQuiz, setShowQuiz] = useState(false);
   const [currentTutorialData, setCurrentTutorialData] = useState(mlTutorialData);
   const [currentQuizQuestions, setCurrentQuizQuestions] = useState(mlQuizQuestions);
+
+  const { id } = useParams();
+  const location = useLocation();
+  const [dashboardUrl, setDashboardUrl] = useState(location.state?.dashboardUrl || null);
+
+  useEffect(() => {
+    if (!dashboardUrl && id) {
+      const csrfToken = Cookies.get("csrftoken");
+      const config = {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          "X-CSRFToken": csrfToken,
+        },
+      };
+  
+      axios
+        .post(BACKEND_BASE_URL + `dashboard/${id}/`, {}, config)
+        .then(async (res) => {
+          const url = res?.data?.url;
+  
+          if (!url) {
+            console.error("No dashboard URL returned");
+            return;
+          }
+  
+          let retries = 15;
+          let isReady = false;
+  
+          while (retries > 0) {
+            try {
+              await axios.get(url);
+              isReady = true;
+              break;
+            } catch (e) {
+              await new Promise((res) => setTimeout(res, 1000));
+              retries--;
+            }
+          }
+  
+          if (isReady) {
+            setDashboardUrl(url);
+          } else {
+            alert("Dashboard failed to load. Please try again later.");
+          }
+        })
+        .catch((err) => {
+          console.error("Failed to fetch dashboard URL", err);
+        });
+    }
+  }, [id, dashboardUrl]);
+  
   
   const [fabTasks, setFabTasks] = useState([
     {
@@ -488,8 +543,7 @@ const Body = ({ backDialogOpen, setBackDialogOpen }) => {
             )}
             <iframe
             id="iframe-id"
-            src="http://localhost:8050"
-            key={refreshCount} // Use refreshCount as the key to force re-render
+            src={dashboardUrl}
             width="100%"
             height="900px"
             onLoad={handleLoad}

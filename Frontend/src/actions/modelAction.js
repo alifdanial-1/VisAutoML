@@ -95,7 +95,7 @@ export const saveDescription = (description) => (dispatch, getState) => {
 };
 
 export const submitModel =
-  ({ elements, auto, algo, unit, label0, label1, split }) =>
+  ({ elements, auto, algo, unit, label0, label1, split }, onSuccess) =>
   (dispatch, getState) => {
     const model = getState().model.model.id;
     const id_column = elements["ID Column"][0]
@@ -148,13 +148,23 @@ export const submitModel =
       });
     }
     axios
-    .post(BACKEND_BASE_URL+`flask/`, data, config)
-    .then((res) => {
-      dispatch({ type: "GET_REVIEW_SUCCESS", payload: res.data });
-    })
-    .catch((err) => {
-      console.log(err.response.data);
-    });
+    .post(BACKEND_BASE_URL + `flask/`, data, config)
+      .then((res) => {
+        if (!res || !res.data) {
+          console.error("Backend did not return data");
+          return;
+        }
+        
+        if (onSuccess) {
+          onSuccess(res.data.id);
+        }
+        Cookies.set('sucessModelId', res.data.id);
+        
+        dispatch({ type: "GET_REVIEW_SUCCESS", payload: res.data });
+      })
+      .catch((err) => {
+        console.log("submitModel error:", err?.response?.data || err.message);
+      });
   };
 
 export const analyzePandasAI = (data) => (dispatch, getState) => {

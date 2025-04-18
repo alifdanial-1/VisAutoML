@@ -5,6 +5,7 @@ import Model from "./pages/Model";
 import Review from "./pages/Review";
 import Select from "./pages/Select";
 import Land from "./pages/Land";
+import Explain from "./pages/Explain";
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
         <Route path="/review" element={<Review />} />
         <Route path="/select" element={<Select />} />
         <Route path="/model" element={<Model />} />
+        <Route path="/explain/:id" element={<Explain />} />
       </Routes>
     </BrowserRouter>
   );
