@@ -23,9 +23,7 @@ jobs:
           ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_PUBLIC_IP }} "
             echo 'Pulling latest code...' &&
             cd ~/VisAutoML &&
-            git fetch origin dev &&
-            git reset --hard origin/dev &&
-            git clean -fd &&
+            git pull origin dev
 
             echo 'Cleaning old frontend build artifacts...' &&
             rm -rf Frontend/build &&
@@ -33,11 +31,11 @@ jobs:
             echo 'Installing frontend dependencies and building...' &&
             cd Frontend &&
             npm install &&
-            GENERATE_SOURCEMAP=false npm run build &&
+            npm run build &&
 
             echo 'Copying frontend to web server directory...' &&
-            sudo rm -rf /var/www/vhosts/frontend &&
-            sudo cp -R build/ /var/www/vhosts/frontend &&
+            sudo rm -rf /var/www/vhosts/frontend/ &&
+            sudo cp -R build/ /var/www/vhosts/frontend/ &&
 
             echo 'Setting up backend...' &&
             cd ../Backend &&
