@@ -1,45 +1,35 @@
-import { Box, Grid, Paper, Button, Card, Divider, IconButton, Typography, Tooltip } from "@mui/material";
-import { useDispatch, useSelector } from "react-redux";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import HelpIcon from '@mui/icons-material/Help';
+import RefreshIcon from '@mui/icons-material/Refresh';
+import { Box, Button, Grid, IconButton, Paper, Tooltip, Typography } from "@mui/material";
 import Backdrop from "@mui/material/Backdrop";
 import CircularProgress from "@mui/material/CircularProgress";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import RefreshIcon from '@mui/icons-material/Refresh';
-import { useState, useEffect } from 'react';
-import { Link } from "react-router-dom";
-import EditDialog from "../common/EditDialog";
-import "../../App.css";
-import { useNavigate } from 'react-router-dom'; // make sure you've installed react-router-dom
-import HelpIcon from '@mui/icons-material/Help';
-import LoadingDialog from "./LoadingDialog";
-import { withStyles } from "@mui/styles";
-import { ArrowBackIos, ArrowForwardIos } from "@mui/icons-material";
 import { tooltipClasses } from '@mui/material/Tooltip';
 import { styled } from '@mui/material/styles';
-import TutorialComponent from "../common/TutorialComponent";
-import QuizDialog from "../common/QuizDialog";
+import { withStyles } from "@mui/styles";
+import { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from 'react-router-dom'; // make sure you've installed react-router-dom
+import "../../App.css";
 import EducationalFAB from "../common/Fab";
 import {
-  mlTutorialData,
-  dataBasicsTutorialData,
-  dataPreprocessingTutorialData,
-  modelTrainingTutorialData,
-  modelEvaluationTutorialData,
-  mlQuizQuestions,
   dataBasicsQuizQuestions,
+  dataBasicsTutorialData,
   dataPreprocessingQuizQuestions,
+  dataPreprocessingTutorialData,
+  mlQuizQuestions,
+  mlTutorialData,
+  modelEvaluationQuizQuestions,
+  modelEvaluationTutorialData,
   modelTrainingQuizQuestions,
-  modelEvaluationQuizQuestions
+  modelTrainingTutorialData
 } from "../common/LearningContent";
+import QuizDialog from "../common/QuizDialog";
+import TutorialComponent from "../common/TutorialComponent";
+import LoadingDialog from "./LoadingDialog";
 
 // Import images for tutorials
-import ml from "../../static/images/Home Page.gif";
-import ml2 from "../../static/images/howitwork.gif";
-import ml3 from "../../static/images/typeofml.gif";
-import sl from "../../static/images/supervisedl.gif";
-import cl from "../../static/images/cl.gif";
-import rg from "../../static/images/rg.gif";
-import im from "../../static/images/Import Page.gif";
-import dts from "../../static/images/dataset.gif";
+import { API_BASE_URL } from "../../config/config";
 
 const Body = ({ backDialogOpen, setBackDialogOpen }) => {
   const navigate = useNavigate();
@@ -488,7 +478,7 @@ const Body = ({ backDialogOpen, setBackDialogOpen }) => {
             )}
             <iframe
             id="iframe-id"
-            src="http://localhost:8050"
+            src={`${API_BASE_URL}:8050`}
             key={refreshCount} // Use refreshCount as the key to force re-render
             width="100%"
             height="900px"
