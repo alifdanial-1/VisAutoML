@@ -27,18 +27,28 @@ jobs:
             git reset --hard origin/dev &&
             git clean -fd &&
             echo 'Code fully overwritten with remote dev branch' &&
-            echo 'Installing backend dependencies...' &&
-            cd Backend &&
-            python3 -m venv my_venv            
-            source my_venv/bin/activate &&
-            pip install -r requirements.txt &&
-            python manage.py migrate &&
-            python manage.py collectstatic --noinput &&
-            echo 'Installing frontend dependencies...' &&
-            cd ../Frontend &&
+
+            echo 'Installing frontend dependencies and building...' &&
+            cd Frontend &&
             npm install &&
             npm run build &&
             sudo cp -R build/ /var/www/vhosts/frontend/ &&
+
+            echo 'Installing backend dependencies...' &&
+            cd ../Backend &&
+            python3 -m venv my_venv &&
+            source my_venv/bin/activate &&
+            pip install -r requirements.txt &&
+
+            echo 'Applying migrations...' &&
+            python manage.py migrate &&
+
+            echo 'Cleaning old static files...' &&
+            rm -rf staticfiles/ &&
+
+            echo 'Collecting static files...' &&
+            python manage.py collectstatic --noinput &&
+
             echo 'Restarting services...' &&
             sudo systemctl restart gunicorn &&
             sudo systemctl restart nginx
