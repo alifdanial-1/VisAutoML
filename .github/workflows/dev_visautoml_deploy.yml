@@ -26,9 +26,13 @@ jobs:
             git reset --hard HEAD &&
             git clean -fd &&
             echo 'Pulling latest code...' &&
-            git pull origin test/aws_ec2_code_deploy &&
+            git pull origin dev &&
             echo 'Installing backend dependencies...' &&
             cd Backend &&
+             if [ ! -d my_venv ]; then
+               echo 'Creating virtual environment...' &&
+               python3 -m venv my_venv
+             fi &&
             source my_venv/bin/activate &&
             pip install -r requirements.txt &&
             python manage.py migrate &&
