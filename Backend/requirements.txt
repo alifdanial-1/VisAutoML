@@ -7,6 +7,7 @@ flask_simplelogin
 graphviz>=0.18.2
 joblib
 jupyter_dash
+numba
 numpy==1.23.5
 oyaml
 pandas==1.5.3
