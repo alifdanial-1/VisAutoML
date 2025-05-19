@@ -20,7 +20,7 @@ jobs:
 
       - name: Deploy to EC2 via SSH
         run: |
-          ssh -o StrictHostKeyChecking=no ubuntu@EC2_PUBLIC_IP << 'EOF'
+          ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_PUBLIC_IP }} << 'EOF'
           cd ~/VisAutoML
 
           echo "Pulling latest code..."
