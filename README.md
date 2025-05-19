@@ -25,3 +25,5 @@ python manage.py runserver
 This will start the Django development server at `http://localhost:8000`.
 
 Make sure to have both the frontend and backend running simultaneously for the full application to work properly.
+
+Test1
