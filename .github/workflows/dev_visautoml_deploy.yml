@@ -20,26 +20,22 @@ jobs:
 
       - name: Deploy to EC2 via SSH
         run: |
-          ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_PUBLIC_IP }} << 'EOF'
-          cd ~/VisAutoML
-
-          echo "Pulling latest code..."
-          git pull origin dev
-
-          echo "Installing backend dependencies..."
-          cd Backend
-          source my_venv/bin/activate
-          pip install -r requirements.txt
-          python manage.py migrate
-          python manage.py collectstatic --noinput
-
-          echo "Installing frontend dependencies..."
-          cd ../Frontend
-          npm install
-          npm run build
-          sudo cp -R build/ /var/www/vhosts/frontend/
-
-          echo "Restarting services..."
-          sudo systemctl restart gunicorn
-          sudo systemctl restart nginx
-          EOF
+          ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_PUBLIC_IP }} "
+            cd ~/VisAutoML &&
+            echo 'Pulling latest code...' &&
+            git pull origin test/aws_ec2_code_deploy &&
+            echo 'Installing backend dependencies...' &&
+            cd Backend &&
+            source my_venv/bin/activate &&
+            pip install -r requirements.txt &&
+            python manage.py migrate &&
+            python manage.py collectstatic --noinput &&
+            echo 'Installing frontend dependencies...' &&
+            cd ../Frontend &&
+            npm install &&
+            npm run build &&
+            sudo cp -R build/ /var/www/vhosts/frontend/ &&
+            echo 'Restarting services...' &&
+            sudo systemctl restart gunicorn &&
+            sudo systemctl restart nginx
+          "
