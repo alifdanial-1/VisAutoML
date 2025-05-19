@@ -35,6 +35,7 @@ jobs:
 
             echo 'Copying frontend to web server directory...' &&
             sudo rm -rf /var/www/vhosts/frontend/ &&
+            sudo mkdir -p /var/www/vhosts/frontend/ &&
             sudo cp -R build/ /var/www/vhosts/frontend/ &&
 
             echo 'Setting up backend...' &&
