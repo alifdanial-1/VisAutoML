@@ -5,7 +5,7 @@ from rest_framework import viewsets, status, decorators, views
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from django.shortcuts import render
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse
 from multiprocessing import Process
 import threading
 import pandas as pd
@@ -16,54 +16,19 @@ from .serializers import ModelSerializer, ModelDescriptionSerializer
 from .models import Model, ModelDescription
 from .review import get_review
 from .regression_custom_explainer import finishing
-from .dashboard import create_dashboard_app
+from .dashboard import runModel
 
 def index(request):
     # print(request)
     # return request
     return render(request, "machine_learning/index.html")
 
-def dashboard(request, model_id):
-    """
-    Serve the ExplainerDashboard for a specific model directly within Django
-    """
-    try:
-        # Get the flask app for the dashboard
-        flask_app = create_dashboard_app(model_id)
-        
-        # Create a WSGI middleware that dispatches to the Flask app
-        from werkzeug.middleware.dispatcher import DispatcherMiddleware
-        from werkzeug.wrappers import Response
-        
-        # Create a simple WSGI app that just returns 404
-        def not_found(environ, start_response):
-            response = Response('Not Found', status=404)
-            return response(environ, start_response)
-        
-        # Create the dispatch middleware, mounting the Flask app at root
-        app = DispatcherMiddleware(not_found, {
-            '': flask_app.wsgi_app
-        })
-        
-        # Call the middleware with the Django request WSGI environment
-        def start_response(status, headers):
-            response = HttpResponse()
-            status_code = int(status.split(' ')[0])
-            response.status_code = status_code
-            for header, value in headers:
-                response[header] = value
-            return response.write
-        
-        # Get the result from the Flask app
-        result = app(request.environ, start_response)
-        
-        # Create a Django HttpResponse from the Flask response
-        response = HttpResponse(b''.join(result))
-        
-        return response
-    except Exception as e:
-        traceback.print_exc()
-        return HttpResponse(f"Error loading dashboard: {str(e)}", status=500)
+def dashboard(request, pk):
+    print("dashboard >>")
+
+    os.system("npx kill-port 8050")
+    runModel(pk)
+    return "Success"
 
 # @api_view(['POST'])
 # def chatbot_response(request):
@@ -124,19 +89,13 @@ class ModelViewSet(viewsets.ViewSet):
         return Response(serializer.data)
     
     def open(self, request, pk):
-        """
-        API endpoint to notify that a dashboard should be accessible.
-        This no longer launches a separate process but just confirms the model exists.
-        """
-        try:
-            model = Model.objects.get(id=pk)
-            # Just verify the model exists, the actual dashboard is served by the dashboard view
-            return Response({"response": "Success", "url": f"/dashboard/{pk}/"})
-        except Model.DoesNotExist:
-            return Response({"response": "Model not found"}, status=404)
-        except Exception as e:
-            traceback.print_exc()
-            return Response({"response": f"Error: {str(e)}"}, status=500)
+        print("dashboard >>>>>", pk)
+
+        os.system("npx kill-port 8050")
+        os.system('explainerdashboard run '+pk+'.yaml --no-browser')
+        # os.system("explainerdashboard run explainer.joblib")
+
+        return Response({"response":"Success"})
 
 
 class ModelDescriptionViewSet(viewsets.ViewSet):
@@ -231,8 +190,11 @@ class FlaskModelViewSet(viewsets.ViewSet):
     def run(self, train_csv_path, project_title, auto, id_column, predict, drop, descriptions, algo, model_id, model,
             unit, label0, label1, split):
         ""
-        # No need to kill port 8050 anymore since we're serving within Django
+        # linux
+        # os.system("kill -9 `lsof -t -i:8050`")
+        # windows
         print("Model id >>", model_id)
+        os.system("npx kill-port 8050")
         if model in ['CL']:
             print("view--------------------")
             os.system(

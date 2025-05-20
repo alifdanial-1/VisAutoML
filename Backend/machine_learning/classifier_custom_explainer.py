@@ -2,7 +2,6 @@ import ast
 import json
 import sqlite3
 import sys
-import os
 
 from sklearn.ensemble import RandomForestClassifier, BaggingClassifier, ExtraTreesClassifier, GradientBoostingRegressor, RandomForestRegressor, AdaBoostClassifier, GradientBoostingClassifier, BaggingRegressor, ExtraTreesRegressor
 
@@ -26,7 +25,7 @@ import pandas as pd
 from scipy import stats
 import numpy as np
 from sklearn.preprocessing import StandardScaler
-from machine_learning.dashboard import runModel
+from dashboard import runModel
 
 db_path = 'db.sqlite3'
 mapping_json = {
@@ -840,30 +839,7 @@ if __name__ == '__main__':
     db.to_yaml(filename+".yaml", explainerfile=filename+".joblib")
     explainer.dump(filename+".joblib")
     
-    print(f"Model {filename} trained and saved successfully.")
-    
-    # Check if we're running in a Django context or standalone
-    import inspect
-    import sys
-    
-    # Determine if this script is being run directly or imported
-    is_standalone = __name__ == "__main__" and not any("django" in arg.lower() for arg in sys.argv)
-    
-    if is_standalone:
-        # When running standalone, start the dashboard directly
-        print("Starting dashboard in standalone mode...")
-        # Set environment variable to trigger dashboard launch
-        os.environ['RUN_DASHBOARD'] = 'true'
-        # Use relative import when in package context, absolute import in standalone
-        try:
-            # First try local import for standalone
-            import dashboard
-            app = dashboard.runModel(filename)
-        except ImportError:
-            # Then try relative import for Django context
-            from .dashboard import runModel
-            app = runModel(filename)
-    else:
-        # In Django context, don't start the dashboard
-        print(f"Dashboard will be available at /dashboard/{filename}/")
-        print("The Django view will handle serving it when requested")
+    # For production deployment, this will initialize the app at module level in dashboard.py
+    # In a development environment, this might attempt to run a server
+    from dashboard import runModel
+    app = runModel(filename)

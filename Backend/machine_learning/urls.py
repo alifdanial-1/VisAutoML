@@ -17,7 +17,6 @@ urlpatterns = [
     path("api/description/<pk>/",
          views.ModelDescriptionViewSet.as_view({"patch": "update"})),
     path("api/dashboard/<pk>/", views.ModelViewSet.as_view({"post":"open"})),
-    path("dashboard/<str:model_id>/", views.dashboard, name="model_dashboard"),
     path("test-media/", TemplateView.as_view(template_name='machine_learning/test_media.html')),
 ]
 
