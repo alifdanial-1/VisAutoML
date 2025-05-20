@@ -478,7 +478,7 @@ const Body = ({ backDialogOpen, setBackDialogOpen }) => {
             )}
             <iframe
             id="iframe-id"
-            src={`${API_BASE_URL}:8050`}
+            src={`${API_BASE_URL}/dash/`}
             key={refreshCount} // Use refreshCount as the key to force re-render
             width="100%"
             height="900px"
