@@ -73,7 +73,7 @@ def launch_dashboard(model_id):
         try:
             db = ExplainerDashboard.from_config(filename + ".yaml")
             print(f"Starting dashboard for model {model_id} on port 8050")
-            db.run(port=8050, use_waitress=True, mode='external')
+            db.run(port=8050, use_waitress=True)
         except Exception as e:
             print(f"Error launching dashboard: {str(e)}")
             traceback.print_exc()
