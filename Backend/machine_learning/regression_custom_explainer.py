@@ -820,11 +820,7 @@ if __name__ == '__main__':
     finish = 1
     finishing(finish)
 
-    # explainer.dump(filename+".joblib")
-    print("Saved joblib file...")
-    # db = ExplainerDashboard(explainer, [
-    #     CustomDashboard, CustomPredictionsTab, Classif], boostrap=dbc.themes.FLATLY,
-    #                    title=projecttitle, hide_poweredby=True, plot_sample=1000, header_hide_selector=True, hide_header=True)
+    # Create and save the dashboard for later use through Django
     db = ExplainerDashboard(
         explainer, 
         boostrap=dbc.themes.LITERA,
@@ -842,18 +838,15 @@ if __name__ == '__main__':
         hide_residuals=True,
         hide_regvscol=True,
         hide_whatifcontributiontable=True,
-        hide_log_x=True, # hide x-axis logs toggle on regression plots
-        hide_log_y=True, precision='float32', depth=6, 
-
+        hide_log_x=True,
+        hide_log_y=True, 
+        precision='float32', 
+        depth=6
     )
     
     # Save the configuration and model
     db.to_yaml(filename+".yaml", explainerfile=filename+".joblib")
     explainer.dump(filename+".joblib")
     
-    # For production deployment, this will initialize the app at module level in dashboard.py
-    # In a development environment, this might attempt to run a server
-
-    db = ExplainerDashboard.from_config(filename+".yaml")
-    app = db.flask_server()
-    os.system("gunicorn -w 4 -b 0.0.0.0:8050 app:app")
+    print(f"Dashboard saved as {filename}.yaml and {filename}.joblib")
+    print(f"Access the dashboard at /dashboard/{filename}/")

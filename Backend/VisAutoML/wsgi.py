@@ -9,8 +9,10 @@ https://docs.djangoproject.com/en/4.0/howto/deployment/wsgi/
 
 import os
 
-from django.core.wsgi import get_wsgi_application
-
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'VisAutoML.settings')
 
-application = get_wsgi_application()
+# Import our custom WSGI app creator
+from machine_learning.dash_apps import create_wsgi_app
+
+# Create the WSGI application
+application = create_wsgi_app()

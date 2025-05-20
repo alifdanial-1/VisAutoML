@@ -2,6 +2,7 @@ import ast
 import json
 import sqlite3
 import sys
+import os
 
 from sklearn.ensemble import RandomForestClassifier, BaggingClassifier, ExtraTreesClassifier, GradientBoostingRegressor, RandomForestRegressor, AdaBoostClassifier, GradientBoostingClassifier, BaggingRegressor, ExtraTreesRegressor
 
@@ -815,33 +816,41 @@ if __name__ == '__main__':
                                                                            model_id, auto)
     
     filename = model_id
-    explainer.dump(filename+".joblib")
-
+    
     print("========================")
 
-    # db = ExplainerDashboard(explainer, [CustomDashboard, CustomPredictionsTab, Classif], boostrap=dbc.themes.FLATLY,
-    #                    title=projecttitle, hide_poweredby=True, plot_sample=1000, header_hide_selector=True, hide_header=True).run()
-
-    db = ExplainerDashboard(explainer,boostrap=dbc.themes.LITERA,title=projecttitle,hide_poweredby=True,plot_sample=1000,
-                            depth=10, 
-                            header_hide_selector=True,hide_header=True,
-                            shap_dependence=False,
-                            shap_interaction=False,decision_trees=False,
-                            hide_globalcutoff=True, hide_precision=True,
-                            hide_classification=True, hide_rocauc=True,
-                            hide_prauc=True, hide_liftcurve=True, 
-                            hide_cumprecision=True, hide_pdp=True, 
-                            hide_contributiontable=True, hide_whatifpdp=True,
-                            hide_whatifcontributiontable=True, show_metrics=['accuracy', 'precision','roc_auc_score'], precision='float32', check_additivity=False,
-                            )
+    # Create and save the dashboard for later use through Django
+    db = ExplainerDashboard(
+        explainer,
+        boostrap=dbc.themes.LITERA,
+        title=projecttitle,
+        hide_poweredby=True,
+        plot_sample=1000,
+        depth=10, 
+        header_hide_selector=True,
+        hide_header=True,
+        shap_dependence=False,
+        shap_interaction=False,
+        decision_trees=False,
+        hide_globalcutoff=True, 
+        hide_precision=True,
+        hide_classification=True, 
+        hide_rocauc=True,
+        hide_prauc=True, 
+        hide_liftcurve=True, 
+        hide_cumprecision=True, 
+        hide_pdp=True, 
+        hide_contributiontable=True, 
+        hide_whatifpdp=True,
+        hide_whatifcontributiontable=True, 
+        show_metrics=['accuracy', 'precision', 'roc_auc_score'], 
+        precision='float32', 
+        check_additivity=False
+    )
     
     # Save the configuration and model
     db.to_yaml(filename+".yaml", explainerfile=filename+".joblib")
     explainer.dump(filename+".joblib")
     
-    # For production deployment, this will initialize the app at module level in dashboard.py
-    # In a development environment, this might attempt to run a server
-
-    db = ExplainerDashboard.from_config(filename+".yaml")
-    app = db.flask_server()
-    os.system("gunicorn -w 4 -b 0.0.0.0:8050 app:app")
+    print(f"Dashboard saved as {filename}.yaml and {filename}.joblib")
+    print(f"Access the dashboard at /dashboard/{filename}/")
