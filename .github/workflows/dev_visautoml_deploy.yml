@@ -18,20 +18,15 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
 
-      - name: Install Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
+      # - name: Build frontend
+      #   run: |
+      #     cd Frontend
+      #     npm install
+      #     npm run build
 
-      - name: Build frontend
-        run: |
-          cd Frontend
-          npm install
-          npm run build
-
-      - name: Copy frontend build to EC2
-        run: |
-          scp -o StrictHostKeyChecking=no -r Frontend/build ubuntu@${{ secrets.EC2_PUBLIC_IP }}:/tmp/frontend-build
+      # - name: Copy frontend build to EC2
+      #   run: |
+      #     scp -o StrictHostKeyChecking=no -r Frontend/build ubuntu@${{ secrets.EC2_PUBLIC_IP }}:/tmp/frontend-build
 
       - name: Deploy backend and frontend on EC2
         run: |
@@ -41,10 +36,7 @@ jobs:
             git fetch origin &&
             git reset --hard origin/dev &&
 
-            echo 'Deploying frontend...' &&
-            sudo rm -rf /var/www/vhosts/frontend &&
-            sudo mkdir -p /var/www/vhosts/frontend &&
-            sudo cp -R /tmp/frontend-build/* /var/www/vhosts/frontend/ &&
+            echo 'Add the frotend build here' &&
 
             echo 'Setting up backend...' &&
             cd Backend &&
