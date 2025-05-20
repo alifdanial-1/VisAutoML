@@ -25,7 +25,7 @@ import pandas as pd
 from scipy import stats
 import numpy as np
 from sklearn.preprocessing import StandardScaler
-from .dashboard import runModel
+from machine_learning.dashboard import runModel
 
 db_path = 'db.sqlite3'
 mapping_json = {
