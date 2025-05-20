@@ -16,7 +16,7 @@ from .serializers import ModelSerializer, ModelDescriptionSerializer
 from .models import Model, ModelDescription
 from .review import get_review
 from .regression_custom_explainer import finishing
-from .dashboard import runModel
+# from .dashboard import runModel
 
 def index(request):
     # print(request)
@@ -27,7 +27,7 @@ def dashboard(request, pk):
     print("dashboard >>")
 
     os.system("npx kill-port 8050")
-    runModel(pk)
+    # runModel(pk)
     return "Success"
 
 # @api_view(['POST'])
