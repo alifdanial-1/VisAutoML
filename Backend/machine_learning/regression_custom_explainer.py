@@ -26,6 +26,7 @@ import pandas as pd
 from scipy import stats
 import numpy as np
 from sklearn.preprocessing import StandardScaler
+from dashboard import runModel
 
 
 db_path = 'db.sqlite3'
@@ -847,7 +848,27 @@ if __name__ == '__main__':
 
     )
     
+    # Save the configuration and model
     db.to_yaml(filename+".yaml", explainerfile=filename+".joblib")
     explainer.dump(filename+".joblib")
-    # os.system("explainerdashboard run explainer.joblib --no-browser")
-    db.run()
+    
+    print(f"Model {filename} trained and saved successfully.")
+    
+    # Check if we're running in a Django context or standalone
+    import inspect
+    import sys
+    
+    # Determine if this script is being run directly or imported
+    is_standalone = __name__ == "__main__" and not any("django" in arg.lower() for arg in sys.argv)
+    
+    if is_standalone:
+        # When running standalone, start the dashboard directly
+        print("Starting dashboard in standalone mode...")
+        # Set environment variable to trigger dashboard launch
+        os.environ['RUN_DASHBOARD'] = 'true'
+        from dashboard import runModel
+        app = runModel(filename)
+    else:
+        # In Django context, don't start the dashboard
+        print(f"Dashboard will be available at /dashboard/{filename}/")
+        print("The Django view will handle serving it when requested")
