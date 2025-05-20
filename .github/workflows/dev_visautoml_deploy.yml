@@ -18,29 +18,36 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
 
-      - name: Deploy to EC2 via SSH
+      - name: Install Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Build frontend
         run: |
-          ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_PUBLIC_IP }} "
+          cd Frontend
+          npm install
+          npm run build
+
+      - name: Copy frontend build to EC2
+        run: |
+          scp -o StrictHostKeyChecking=no -r Frontend/build ubuntu@${{ secrets.EC2_PUBLIC_IP }}:/tmp/frontend-build
+
+      - name: Deploy backend and frontend on EC2
+        run: |
+          ssh -o StrictHostKeyChecking=no -o ServerAliveInterval=60 ubuntu@${{ secrets.EC2_PUBLIC_IP }} "
             echo 'Pulling latest code...' &&
             cd ~/VisAutoML &&
-            git fetch origin
-            git reset --hard origin/dev
+            git fetch origin &&
+            git reset --hard origin/dev &&
 
-            echo 'Cleaning old frontend build artifacts...' &&
-            rm -rf Frontend/build &&
-
-            echo 'Installing frontend dependencies and building...' &&
-            cd Frontend &&
-            npm install &&
-            npm run build &&
-
-            echo 'Copying frontend to web server directory...' &&
-            sudo rm -rf /var/www/vhosts/frontend/ &&
-            sudo mkdir -p /var/www/vhosts/frontend/ &&
-            sudo cp -R build/ /var/www/vhosts/frontend/ &&
+            echo 'Deploying frontend...' &&
+            sudo rm -rf /var/www/vhosts/frontend &&
+            sudo mkdir -p /var/www/vhosts/frontend &&
+            sudo cp -R /tmp/frontend-build/* /var/www/vhosts/frontend/ &&
 
             echo 'Setting up backend...' &&
-            cd ../Backend &&
+            cd Backend &&
             python3 -m venv venv &&
             source venv/bin/activate &&
             pip install -r requirements.txt &&
@@ -51,7 +58,7 @@ jobs:
             echo 'Cleaning old staticfiles...' &&
             rm -rf staticfiles &&
 
-            echo 'Collecting static files without .map references...' &&
+            echo 'Collecting static files...' &&
             python manage.py collectstatic --noinput &&
 
             echo 'Restarting services...' &&
