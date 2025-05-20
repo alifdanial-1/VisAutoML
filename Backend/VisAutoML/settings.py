@@ -154,6 +154,7 @@ CORS_ORIGIN_ALLOW_ALL = False
 CORS_ORIGIN_WHITELIST = [
     'http://52.221.176.156',
     'http://52.221.176.156:3000',
+    'http://localhost:3000',
 ]
 # STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.ManifestStaticFilesStorage'
 CORS_ALLOW_CREDENTIALS = True
