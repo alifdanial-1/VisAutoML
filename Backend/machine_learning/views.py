@@ -1,5 +1,6 @@
 import os
 import traceback
+import threading
 
 from rest_framework import viewsets, status, decorators, views
 from rest_framework.response import Response
@@ -10,13 +11,19 @@ from multiprocessing import Process
 import threading
 import pandas as pd
 import os
+import signal
 
 
 from .serializers import ModelSerializer, ModelDescriptionSerializer
 from .models import Model, ModelDescription
 from .review import get_review
 from .regression_custom_explainer import finishing
+from explainerdashboard import ExplainerDashboard
 # from .dashboard import runModel
+
+# Global variable to keep track of the dashboard thread
+dashboard_thread = None
+dashboard_process = None
 
 def index(request):
     # print(request)
@@ -26,9 +33,54 @@ def index(request):
 def dashboard(request, pk):
     print("dashboard >>")
 
-    os.system("npx kill-port 8050")
-    # runModel(pk)
+    # Kill any existing dashboard process
+    kill_existing_dashboard()
+    
+    # Launch new dashboard
+    launch_dashboard(pk)
+    
     return "Success"
+
+def kill_existing_dashboard():
+    """Kill any existing dashboard process or thread"""
+    global dashboard_thread, dashboard_process
+    
+    # Kill any process on port 8050
+    os.system("npx kill-port 8050")
+    
+    # If there's an active dashboard thread, try to stop it
+    if dashboard_thread and dashboard_thread.is_alive():
+        # We can't really stop a thread, but for future implementation
+        # we could use event flags to signal the thread to stop
+        pass
+    
+    # If there's an active dashboard process, try to stop it
+    if dashboard_process:
+        try:
+            os.kill(dashboard_process.pid, signal.SIGTERM)
+            dashboard_process = None
+        except:
+            pass
+
+def launch_dashboard(model_id):
+    """Launch the dashboard in a daemon thread using Waitress"""
+    global dashboard_thread
+    
+    # Load the explainer configuration from the saved YAML file
+    filename = str(model_id)
+    
+    def run_dashboard():
+        try:
+            db = ExplainerDashboard.from_config(filename + ".yaml")
+            print(f"Starting dashboard for model {model_id} on port 8050")
+            db.run(port=8050, use_waitress=True, mode='external')
+        except Exception as e:
+            print(f"Error launching dashboard: {str(e)}")
+            traceback.print_exc()
+    
+    # Start the dashboard in a daemon thread
+    dashboard_thread = threading.Thread(target=run_dashboard, daemon=True)
+    dashboard_thread.start()
 
 # @api_view(['POST'])
 # def chatbot_response(request):
@@ -90,12 +142,14 @@ class ModelViewSet(viewsets.ViewSet):
     
     def open(self, request, pk):
         print("dashboard >>>>>", pk)
-
-        os.system("npx kill-port 8050")
-        os.system('explainerdashboard run '+pk+'.yaml --no-browser')
-        # os.system("explainerdashboard run explainer.joblib")
-
-        return Response({"response":"Success"})
+        
+        # Kill any existing dashboard
+        kill_existing_dashboard()
+        
+        # Launch new dashboard
+        launch_dashboard(pk)
+        
+        return Response({"response":"Success", "url": "http://52.221.176.156:8050"})
 
 
 class ModelDescriptionViewSet(viewsets.ViewSet):
@@ -167,45 +221,57 @@ class FlaskModelViewSet(viewsets.ViewSet):
                 if request.data["split"] != "":
                     split = request.data["split"]
             print(request.data)
-            # linux
-            # p = Process(target=self.run,
-            #                      args=(
-            #                          train_csv_path, project_title, auto, id_column, predict, drop, descriptions, algo,
-            #                          model_id,
-            #                          model, unit, label0, label1))
 
-            # windows
-            p = threading.Thread(target=self.run,
-                                 args=(
-                                     train_csv_path, project_title, auto, id_column, predict, drop, descriptions, algo,
-                                     model_id,
-                                     model, unit, label0, label1, split))
-            print("thread+++++++++++")
-            p.start()
-            p.join()
-            return Response(data={"message": "success"}, status=status.HTTP_200_OK)
+            # Kill any existing dashboard process
+            kill_existing_dashboard()
+            
+            global dashboard_process
+            # For Windows, use a separate process that can be terminated
+            dashboard_process = threading.Thread(target=self.run,
+                               args=(
+                                   train_csv_path, project_title, auto, id_column, predict, drop, descriptions, algo,
+                                   model_id, model, unit, label0, label1, split))
+            dashboard_process.daemon = True
+            dashboard_process.start()
+            
+            # After the training is complete, launch the dashboard
+            return Response(data={"message": "Model training started. The dashboard will be available at http://52.221.176.156:8050 when training is complete."}, 
+                          status=status.HTTP_200_OK)
         except Exception as e:
             traceback.print_exc()
+            return Response(data={"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def run(self, train_csv_path, project_title, auto, id_column, predict, drop, descriptions, algo, model_id, model,
             unit, label0, label1, split):
-        ""
-        # linux
-        # os.system("kill -9 `lsof -t -i:8050`")
-        # windows
-        print("Model id >>", model_id)
-        os.system("npx kill-port 8050")
-        if model in ['CL']:
-            print("view--------------------")
-            os.system(
-                'python machine_learning/classifier_custom_explainer.py ' + str(
-                    train_csv_path) + ' ' +'"'+ project_title +'"'+ ' ' + str(
-                    auto) + ' ' +'"'+ id_column +'"'+ ' ' +'"'+ predict +'"'+ ' ' + '"' + str(drop) + '"' + ' ' +'"'+ str(
-                    descriptions) +'"'+ ' ' + str(algo) + ' ' + str(model_id) + ' ' +'"'+ str(label0) +'"'+ ' ' +'"'+ str(label1) +'"'+ ' ' + '"' + str(split) + '"')
-            print("end+++++++++++")
-        else:
-            os.system(
-                'python machine_learning/regression_custom_explainer.py ' + str(
-                    train_csv_path) + ' ' +'"'+ project_title +'"'+ ' ' + str(
-                    auto) + ' ' +'"'+ id_column +'"'+ ' ' +'"'+ predict +'"'+ ' ' + '"' + str(drop) + '"' + ' ' +'"'+ str(
-                    descriptions) +'"'+ ' ' + str(algo) + ' ' + str(model_id) + ' ' +'"'+ str(unit) +'"'+ ' ' + '"' + str(split) + '"')
+        """Run the model training process and then launch the dashboard"""
+        try:
+            # Kill any existing process on port 8050
+            os.system("npx kill-port 8050")
+            
+            # Run the appropriate custom explainer script
+            if model in ['CL']:
+                print("Running classifier explainer")
+                cmd = (
+                    f'python machine_learning/classifier_custom_explainer.py '
+                    f'{train_csv_path} "{project_title}" {auto} "{id_column}" "{predict}" '
+                    f'"{drop}" "{descriptions}" {algo} {model_id} "{label0}" "{label1}" "{split}"'
+                )
+                exit_code = os.system(cmd)
+            else:
+                print("Running regression explainer")
+                cmd = (
+                    f'python machine_learning/regression_custom_explainer.py '
+                    f'{train_csv_path} "{project_title}" {auto} "{id_column}" "{predict}" '
+                    f'"{drop}" "{descriptions}" {algo} {model_id} "{unit}" "{split}"'
+                )
+                exit_code = os.system(cmd)
+            
+            if exit_code != 0:
+                print(f"Error: Script exited with code {exit_code}")
+                return
+            
+            # Launch the dashboard after training is complete
+            launch_dashboard(model_id)
+        except Exception as e:
+            print(f"Error in run method: {str(e)}")
+            traceback.print_exc()

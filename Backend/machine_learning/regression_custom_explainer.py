@@ -820,7 +820,6 @@ if __name__ == '__main__':
     finish = 1
     finishing(finish)
 
-    # Create and save the dashboard for later use through Django
     db = ExplainerDashboard(
         explainer, 
         boostrap=dbc.themes.LITERA,
@@ -838,15 +837,13 @@ if __name__ == '__main__':
         hide_residuals=True,
         hide_regvscol=True,
         hide_whatifcontributiontable=True,
-        hide_log_x=True,
-        hide_log_y=True, 
-        precision='float32', 
-        depth=6
+        hide_log_x=True, # hide x-axis logs toggle on regression plots
+        hide_log_y=True, precision='float32', depth=6, 
     )
     
     # Save the configuration and model
     db.to_yaml(filename+".yaml", explainerfile=filename+".joblib")
     explainer.dump(filename+".joblib")
     
-    print(f"Dashboard saved as {filename}.yaml and {filename}.joblib")
-    print(f"Access the dashboard at /dashboard/{filename}/")
+    # Return success code to indicate completion
+    sys.exit(0)

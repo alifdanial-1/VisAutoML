@@ -4,7 +4,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic import TemplateView
 from django.views.static import serve
-from . import views, dashboard
+from . import views
 import os
 
 urlpatterns = [
@@ -18,7 +18,6 @@ urlpatterns = [
          views.ModelDescriptionViewSet.as_view({"patch": "update"})),
     path("api/dashboard/<pk>/", views.ModelViewSet.as_view({"post":"open"})),
     path("test-media/", TemplateView.as_view(template_name='machine_learning/test_media.html')),
-    path('dashboard/<str:model_id>/', dashboard.dashboard_view, name='ml_dashboard'),
 ]
 
 # Serve static files during development

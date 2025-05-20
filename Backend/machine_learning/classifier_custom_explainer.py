@@ -816,41 +816,26 @@ if __name__ == '__main__':
                                                                            model_id, auto)
     
     filename = model_id
-    
+    explainer.dump(filename+".joblib")
+
     print("========================")
 
-    # Create and save the dashboard for later use through Django
-    db = ExplainerDashboard(
-        explainer,
-        boostrap=dbc.themes.LITERA,
-        title=projecttitle,
-        hide_poweredby=True,
-        plot_sample=1000,
-        depth=10, 
-        header_hide_selector=True,
-        hide_header=True,
-        shap_dependence=False,
-        shap_interaction=False,
-        decision_trees=False,
-        hide_globalcutoff=True, 
-        hide_precision=True,
-        hide_classification=True, 
-        hide_rocauc=True,
-        hide_prauc=True, 
-        hide_liftcurve=True, 
-        hide_cumprecision=True, 
-        hide_pdp=True, 
-        hide_contributiontable=True, 
-        hide_whatifpdp=True,
-        hide_whatifcontributiontable=True, 
-        show_metrics=['accuracy', 'precision', 'roc_auc_score'], 
-        precision='float32', 
-        check_additivity=False
-    )
+    db = ExplainerDashboard(explainer,boostrap=dbc.themes.LITERA,title=projecttitle,hide_poweredby=True,plot_sample=1000,
+                            depth=10, 
+                            header_hide_selector=True,hide_header=True,
+                            shap_dependence=False,
+                            shap_interaction=False,decision_trees=False,
+                            hide_globalcutoff=True, hide_precision=True,
+                            hide_classification=True, hide_rocauc=True,
+                            hide_prauc=True, hide_liftcurve=True, 
+                            hide_cumprecision=True, hide_pdp=True, 
+                            hide_contributiontable=True, hide_whatifpdp=True,
+                            hide_whatifcontributiontable=True, show_metrics=['accuracy', 'precision','roc_auc_score'], precision='float32', check_additivity=False,
+                            )
     
     # Save the configuration and model
     db.to_yaml(filename+".yaml", explainerfile=filename+".joblib")
     explainer.dump(filename+".joblib")
     
-    print(f"Dashboard saved as {filename}.yaml and {filename}.joblib")
-    print(f"Access the dashboard at /dashboard/{filename}/")
+    # Return success code to indicate completion
+    sys.exit(0)
