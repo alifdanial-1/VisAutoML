@@ -26,7 +26,7 @@ import pandas as pd
 from scipy import stats
 import numpy as np
 from sklearn.preprocessing import StandardScaler
-from machine_learning.dashboard import runModel
+
 
 db_path = 'db.sqlite3'
 finish = 0
@@ -853,5 +853,7 @@ if __name__ == '__main__':
     
     # For production deployment, this will initialize the app at module level in dashboard.py
     # In a development environment, this might attempt to run a server
-    from dashboard import runModel
-    app = runModel(filename)
+
+    db = ExplainerDashboard.from_config(filename+".yaml")
+    app = db.flask_server()
+    os.system("gunicorn -w 4 -b 0.0.0.0:8050 app:app")
