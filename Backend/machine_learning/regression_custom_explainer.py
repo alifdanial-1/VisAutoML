@@ -26,7 +26,7 @@ import pandas as pd
 from scipy import stats
 import numpy as np
 from sklearn.preprocessing import StandardScaler
-from dashboard import runModel
+from .dashboard import runModel
 
 
 db_path = 'db.sqlite3'
@@ -866,8 +866,15 @@ if __name__ == '__main__':
         print("Starting dashboard in standalone mode...")
         # Set environment variable to trigger dashboard launch
         os.environ['RUN_DASHBOARD'] = 'true'
-        from dashboard import runModel
-        app = runModel(filename)
+        # Use relative import when in package context, absolute import in standalone
+        try:
+            # First try local import for standalone
+            import dashboard
+            app = dashboard.runModel(filename)
+        except ImportError:
+            # Then try relative import for Django context
+            from .dashboard import runModel
+            app = runModel(filename)
     else:
         # In Django context, don't start the dashboard
         print(f"Dashboard will be available at /dashboard/{filename}/")
