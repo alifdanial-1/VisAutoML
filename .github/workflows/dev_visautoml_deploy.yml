@@ -26,21 +26,10 @@ jobs:
             git fetch origin
             git reset --hard origin/dev
 
-            echo 'Cleaning old frontend build artifacts...' &&
-            rm -rf Frontend/build &&
-
-            echo 'Installing frontend dependencies and building...' &&
-            cd Frontend &&
-            npm install &&
-            npm run build &&
-
-            echo 'Copying frontend to web server directory...' &&
-            sudo rm -rf /var/www/vhosts/frontend/ &&
-            sudo mkdir -p /var/www/vhosts/frontend/ &&
-            sudo cp -R build/ /var/www/vhosts/frontend/ &&
+            
 
             echo 'Setting up backend...' &&
-            cd ../Backend &&
+            cd Backend &&
             python3 -m venv venv &&
             source venv/bin/activate &&
             pip install -r requirements.txt &&
