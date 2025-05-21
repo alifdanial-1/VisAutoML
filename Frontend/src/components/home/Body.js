@@ -148,10 +148,12 @@ const Body = () => {
   const [modelType, setModelType] = useState("");
   const [videoTitle, setVideoTitle] = useState("");
   const [videoUrl, setVideoUrl] = useState("");
-  const [clasPercent, setClasPercent] = useState(7);
-  const [regPercent, setRegPercent] = useState(93);
+  const [clasPercent, setClasPercent] = useState(0);
+  const [regPercent, setRegPercent] = useState(0);
 
   const [rows, setPosts] = useState([]);
+  // New state to store only models with scores
+  const [filteredRows, setFilteredRows] = useState([]);
   const [chartData, setChartData] = useState([]);
 
   const [class1, setClass1] = useState('');
@@ -322,20 +324,21 @@ const Body = () => {
   const handleChange1 = (e) => {
     setClass1(e.target.value);
     if (e.target.value) {
-      setChartData(rows.filter(one => one.model_type === e.target.value));
+      setChartData(filteredRows.filter(one => one.model_type === e.target.value));
     }
     else {
-      setChartData(rows);
+      setChartData(filteredRows);
     }
     setClass2('');
   };
+  
   const handleChange2 = (e) => {
     setClass2(e.target.value);
     if (e.target.value) {
-      setChartData(rows.filter(one => one.model_type === class1 && one.algorithm_name === e.target.value));
+      setChartData(filteredRows.filter(one => one.model_type === class1 && one.algorithm_name === e.target.value));
     }
     else {
-      setChartData(rows.filter(one => one.model_type === class1));
+      setChartData(filteredRows.filter(one => one.model_type === class1));
     }
   };
 
@@ -344,17 +347,24 @@ const Body = () => {
       .get(BACKEND_BASE_URL + `table/`, config)
       .then((res) => {
         setPosts(res.data);
+        // Filter models with valid scores
+        const modelsWithScores = res.data.filter(model => 
+          model.overall_score !== null && 
+          model.overall_score !== undefined && 
+          model.overall_score !== "");
+        setFilteredRows(modelsWithScores);
+        
         if (class1) {
           if (class2) {
-            setChartData(res.data.filter(one => one.model_type === class1 && one.algorithm_name === class2));
+            setChartData(modelsWithScores.filter(one => one.model_type === class1 && one.algorithm_name === class2));
           } else {
-            setChartData(res.data.filter(one => one.model_type === class1));
+            setChartData(modelsWithScores.filter(one => one.model_type === class1));
           }
         } else {
-          setChartData(res.data);
+          setChartData(modelsWithScores);
         }
-        calcClaspercent(res.data);
-        calcRegpercent(res.data);
+        calcClaspercent(modelsWithScores);
+        calcRegpercent(modelsWithScores);
         dispatch({ type: "GET_REVIEW_SUCCESS", payload: res.data });
       })
       .catch((err) => {
@@ -373,37 +383,42 @@ const Body = () => {
   useEffect(() => {
     if (class1) {
       if (class2) {
-        setChartData(rows.filter(one => one.model_type === class1 && one.algorithm_name === class2));
+        setChartData(filteredRows.filter(one => one.model_type === class1 && one.algorithm_name === class2));
       } else {
-        setChartData(rows.filter(one => one.model_type === class1));
+        setChartData(filteredRows.filter(one => one.model_type === class1));
       }
     } else {
-      setChartData(rows);
+      setChartData(filteredRows);
     }
-  }, [rows, class1, class2])
+  }, [filteredRows, class1, class2])
+
+  // Filter rows whenever the original data changes
+  useEffect(() => {
+    const modelsWithScores = rows.filter(model => 
+      model.overall_score !== null && 
+      model.overall_score !== undefined && 
+      model.overall_score !== "");
+    setFilteredRows(modelsWithScores);
+  }, [rows]);
 
   const calcAvgmark = () => {
-    if (rows.length === 0) return "0";
+    if (filteredRows.length === 0) return "0";
     let sum = 0;
-    for (let i = 0; i < rows.length; i++) {
-      if (rows[i].overall_score === null) {
-        continue;
-      } else {
-        sum += rows[i].overall_score / 1;
-      }
+    for (let i = 0; i < filteredRows.length; i++) {
+      sum += parseFloat(filteredRows[i].overall_score);
     }
-    var avg = sum / rows.length;
+    var avg = sum / filteredRows.length;
     return avg.toFixed(0);
   }
 
   const getRecentalgorithm = () => {
-    if (rows.length === 0) return "No models yet";
+    if (filteredRows.length === 0) return "No models yet";
     let nameset = [];
-    for (let i = 0; i < rows.length; i++) {
-      if (rows[i].algorithm_name === "") {
+    for (let i = 0; i < filteredRows.length; i++) {
+      if (filteredRows[i].algorithm_name === "") {
         continue;
       } else {
-        nameset.push(formatAlgorithmName(rows[i].algorithm_name));
+        nameset.push(formatAlgorithmName(filteredRows[i].algorithm_name));
       }
     }
     return nameset[0] || "No models yet";
@@ -414,41 +429,43 @@ const Body = () => {
   }
 
   const calcClaspercent = (data) => {
-    let clas = 0;
+    if (data.length === 0) {
+      setClasPercent(0);
+      return;
+    }
+    
     let cnt = 0;
     for (let i = 0; i < data.length; i++) {
       if (data[i].model_type === "Classification") {
         cnt++;
       }
     }
-    clas = (cnt / data.length) * 100;
-    // return clas.toFixed(0);
-    setClasPercent(parseInt(clas));
+    const clas = (cnt / data.length) * 100;
+    setClasPercent(parseInt(clas) || 0);
   }
 
   const calcRegpercent = (data) => {
-    let reg = 0;
+    if (data.length === 0) {
+      setRegPercent(0);
+      return;
+    }
+    
     let cnt = 0;
     for (let i = 0; i < data.length; i++) {
       if (data[i].model_type === "Regression") {
         cnt++;
       }
     }
-    reg = (cnt / data.length) * 100;
-    // return reg.toFixed(0);
-    setRegPercent(parseInt(reg));
+    const reg = (cnt / data.length) * 100;
+    setRegPercent(parseInt(reg) || 0);
   }
 
   const getMaxValue = () => {
     let max = 0;
     for (let i = 0; i < chartData.length; i++) {
-      if (chartData[i]?.overall_score === null || chartData[i]?.overall_score === "0") {
-        continue;
-      } else {
-        if (max < chartData[i]?.overall_score / 1) {
-          // console.log(chartData[i].overall_score);
-          max = chartData[i]?.overall_score / 1;
-        }
+      const score = parseFloat(chartData[i]?.overall_score);
+      if (score > max) {
+        max = score;
       }
     }
     return max;
@@ -512,7 +529,7 @@ const Body = () => {
     labels: chartData.map(one => `Model Name: ${one.model_name}\nModel Type: ${one.model_type}\nAlgorithm: ${one.algorithm_name}`),
     datasets: [{
       data: chartData.map(one => one.overall_score),
-      backgroundColor: chartData.map(one => one.overall_score / 1 === getMaxValue() ? "#EAA349" : "#1A97F5")
+      backgroundColor: chartData.map(one => parseFloat(one.overall_score) === getMaxValue() ? "#EAA349" : "#1A97F5")
     }]
   }
 
@@ -606,12 +623,12 @@ const Body = () => {
   };
 
   useEffect(() => {
-    // Calculate algorithm statistics from rows data
-    if (rows && rows.length > 0) {
+    // Calculate algorithm statistics from filtered rows data only
+    if (filteredRows && filteredRows.length > 0) {
       const stats = {};
       const trends = {};
       
-      rows.forEach(row => {
+      filteredRows.forEach(row => {
         if (!row.algorithm_name) return;
         
         const algoName = row.algorithm_name;
@@ -647,8 +664,11 @@ const Body = () => {
 
       setAlgorithmStats(stats);
       setTrendData(trends);
+    } else {
+      setAlgorithmStats({});
+      setTrendData({});
     }
-  }, [rows]);
+  }, [filteredRows]);
 
   const getTopAlgorithms = () => {
     if (!algorithmStats) return [];
@@ -1016,7 +1036,7 @@ const Body = () => {
                   </Grid>
                 </Grid>
                 <Grid item xs={12} sx={{ width: "100%", height: "70%", marginTop: "3%" }}>
-                  {rows.length === 0 ? (
+                  {filteredRows.length === 0 ? (
                     <Box
                       sx={{
                         display: 'flex',
@@ -1095,7 +1115,7 @@ const Body = () => {
                   msOverflowStyle: 'none',
                   pt: 1.5
                 }}>
-                  {rows.length === 0 ? (
+                  {filteredRows.length === 0 ? (
                     <Box
                       sx={{
                         display: 'flex',
@@ -1242,7 +1262,7 @@ const Body = () => {
                   </Typography>
                 </Grid>
                 <Grid item width="100%" height="90%" display="flex" alignItems="center" justifyContent="space-between" paddingBottom="10px">
-                  {rows.length === 0 ? (
+                  {filteredRows.length === 0 ? (
                     <Box
                       sx={{
                         display: 'flex',
@@ -1320,7 +1340,7 @@ const Body = () => {
                               fontWeight: '700',
                               fontFamily: "'SF Pro Display', sans-serif",
                             }}>
-                              {rows.length}
+                              {filteredRows.length}
                             </Typography>
                           </Box>
                         </Box>
@@ -1461,7 +1481,7 @@ const Body = () => {
                           color: "white",
                         }}
                       >
-                        {rows.length}
+                        {filteredRows.length}
                       </Typography>
                     </Grid>
                     <Grid item xs={12} sx={{ width: "100%", height: "20%" }}>
@@ -1765,7 +1785,7 @@ const Body = () => {
                   arrow
                 >
                   <Grid item xs={12} sx={{ marginTop: "10px", padding: "5px" }}>
-                    {rows.length === 0 ? (
+                    {filteredRows.length === 0 ? (
                       <Box
                         sx={{
                           display: 'flex',
@@ -1827,7 +1847,7 @@ const Body = () => {
                       </Box>
                     ) : (
                       <TableComponent 
-                        rows={rows} 
+                        rows={filteredRows} 
                         setPosts={setPosts} 
                         sortBy={sortBy}
                         setSortBy={setSortBy}

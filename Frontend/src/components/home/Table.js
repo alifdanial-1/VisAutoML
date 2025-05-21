@@ -90,22 +90,12 @@ const TableComponent = ({ rows, setPosts, sortBy, setSortBy, sortOrder, setSortO
   };
 
   const getSortedRows = () => {
-    // First filter out rows without a score
-    const filteredRows = rows.filter(row => 
-      row.overall_score !== null && 
-      row.overall_score !== undefined && 
-      row.overall_score !== ""
-    );
+    // No need to filter again since we're already receiving filtered rows from Body component
+    if (!sortBy) return rows;
     
-    if (!sortBy) return filteredRows;
-    
-    return [...filteredRows].sort((a, b) => {
+    return [...rows].sort((a, b) => {
       let aVal = a[sortBy];
       let bVal = b[sortBy];
-      
-      // Handle null values
-      if (aVal === null) aVal = sortBy === 'overall_score' ? -1 : '';
-      if (bVal === null) bVal = sortBy === 'overall_score' ? -1 : '';
       
       // Convert to numbers for score comparison
       if (sortBy === 'overall_score') {
