@@ -246,27 +246,48 @@ const EducationalFAB = ({ open, onToggle, onTaskStart, onTaskComplete, onQuizRed
       }
     }
 
-    // Show notifications in normal mode
+    // Show notifications in normal mode with delay
     if (!devMode) {
+      let showNotificationTimeout;
+      let hideNotificationTimeout;
+      
       // Show tutorial notification if tutorial not completed
       if (!currentSection.tutorialComplete) {
-        setShowNotification(true)
-        setNotificationType("tutorial")
+        // Show notification after 2 seconds
+        showNotificationTimeout = setTimeout(() => {
+          setShowNotification(true);
+          setNotificationType("tutorial");
+          
+          // Auto-hide notification after 3 seconds
+          hideNotificationTimeout = setTimeout(() => {
+            setShowNotification(false);
+          }, 3000);
+        }, 1000);
       }
       // Show quiz notification if tutorial completed but quiz not completed
       else if (!currentSection.quizComplete) {
-        setShowNotification(true)
-        setNotificationType("quiz")
+        // Show notification after 2 seconds
+        showNotificationTimeout = setTimeout(() => {
+          setShowNotification(true);
+          setNotificationType("quiz");
+          
+          // Auto-hide notification after 3 seconds
+          hideNotificationTimeout = setTimeout(() => {
+            setShowNotification(false);
+          }, 3000);
+        }, 1000);
       }
-      // Hide notification if both are completed
-      else {
-        setShowNotification(false)
-      }
+      
+      // Clean up timeouts when component unmounts or dependencies change
+      return () => {
+        clearTimeout(showNotificationTimeout);
+        clearTimeout(hideNotificationTimeout);
+      };
     } else {
       // Hide notifications in guide mode since we auto-start tasks
-      setShowNotification(false)
+      setShowNotification(false);
     }
-  }, [currentPage, learningProgress, devMode, dispatch])
+  }, [currentPage, learningProgress, devMode, dispatch]);
 
   // Monitor changes in guide mode
   useEffect(() => {
@@ -588,6 +609,7 @@ const EducationalFAB = ({ open, onToggle, onTaskStart, onTaskComplete, onQuizRed
         leaveDelay={200}
         TransitionComponent={Zoom}
         arrow
+        disableHoverListener={true}
         componentsProps={{
           tooltip: {
             sx: {
@@ -695,9 +717,22 @@ const EducationalFAB = ({ open, onToggle, onTaskStart, onTaskComplete, onQuizRed
           <Box
             sx={{
               position: 'relative',
-              marginBottom: '88px',
+              marginBottom: '100px',
               marginRight: '24px',
               width: 400,
+              '&::after': {
+                content: '""',
+                position: 'absolute',
+                bottom: '-13px',
+                right: '21px',
+                width: '0',
+                height: '0',
+                borderLeft: '12px solid transparent',
+                borderRight: '12px solid transparent',
+                borderTop: '16px solid white',
+                filter: 'drop-shadow(0 3px 4px rgba(0, 0, 0, 0.08))',
+                zIndex: 10,
+              }
             }}
           >
             <Paper 

@@ -90,9 +90,16 @@ const TableComponent = ({ rows, setPosts, sortBy, setSortBy, sortOrder, setSortO
   };
 
   const getSortedRows = () => {
-    if (!sortBy) return rows;
+    // First filter out rows without a score
+    const filteredRows = rows.filter(row => 
+      row.overall_score !== null && 
+      row.overall_score !== undefined && 
+      row.overall_score !== ""
+    );
     
-    return [...rows].sort((a, b) => {
+    if (!sortBy) return filteredRows;
+    
+    return [...filteredRows].sort((a, b) => {
       let aVal = a[sortBy];
       let bVal = b[sortBy];
       

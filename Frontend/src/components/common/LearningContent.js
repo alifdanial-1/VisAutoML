@@ -291,6 +291,7 @@ export const modelTrainingTutorialData = {
         {
           id: "section3_2",
           title: "What is ID column?",
+          title: "What is ID column?",
           content: "The ID column contains unique identifiers for each data entry, such as transaction IDs or user IDs. While essential for tracking or organizing data, ID columns are not used for training as they do not provide meaningful patterns for predictions.",
           image: t7
         }
@@ -419,17 +420,6 @@ export const mlQuizQuestions = [
     explanation: "The ML process involves defining the problem, collecting relevant data, preprocessing it, training a model to learn patterns, and evaluating its performance."
   },
   {
-    question: "What are the three main approaches to Machine Learning?",
-    options: [
-      "Predictive, Analytical, and Experimental learning",
-      "Basic, Intermediate, and Advanced learning",
-      "Supervised, Unsupervised, and Reinforcement learning",
-      "Classification, Regression, and Clustering learning"
-    ],
-    correctAnswer: "Supervised, Unsupervised, and Reinforcement learning",
-    explanation: "The three main approaches are Supervised learning (using labeled data), Unsupervised learning (finding patterns), and Reinforcement learning (learning through feedback)."
-  },
-  {
     question: "What is the key characteristic of supervised learning?",
     options: [
       "It requires no data to train",
@@ -450,28 +440,6 @@ export const mlQuizQuestions = [
     ],
     correctAnswer: "Classification sorts data into categories while regression predicts numerical values",
     explanation: "Classification assigns data to categories (like spam/not spam), while regression predicts continuous numerical values (like house prices or temperature)."
-  },
-  {
-    question: "What type of questions is regression best suited to answer?",
-    options: [
-      "'Yes or No' questions",
-      "'Which category?' questions",
-      "'How much?' or 'How many?' questions",
-      "'True or False' questions"
-    ],
-    correctAnswer: "'How much?' or 'How many?' questions",
-    explanation: "Regression answers quantitative questions like 'How much?' or 'How many?' by predicting numerical values rather than categorical outcomes."
-  },
-  {
-    question: "What is a real-world example of classification in action?",
-    options: [
-      "Predicting tomorrow's temperature",
-      "Sorting emails into spam or inbox",
-      "Estimating future sales figures",
-      "Forecasting housing prices"
-    ],
-    correctAnswer: "Sorting emails into spam or inbox",
-    explanation: "Email spam filtering is a classic classification example, where the model categorizes incoming messages as either legitimate or unwanted spam."
   },
   {
     question: "What type of prediction would require regression analysis?",
@@ -499,17 +467,6 @@ export const dataBasicsQuizQuestions = [
     explanation: "Machine learning primarily uses numerical data (continuous values and counts) and categorical data (nominal and ordinal categories)."
   },
   {
-    question: "How is categorical data classified?",
-    options: [
-      "Binary and continuous",
-      "Integer and decimal",
-      "Nominal (no order) and ordinal (with order)", // correct - index 2
-      "Quantitative and qualitative"
-    ],
-    correctAnswer: "Nominal (no order) and ordinal (with order)",
-    explanation: "Categorical data is either nominal with no inherent order (like colors) or ordinal with meaningful ranking (like size: small, medium, large)."
-  },
-  {
     question: "In the puzzle analogy for machine learning datasets, what represents the 'picture on the box'?",
     options: [
       "The features",
@@ -532,17 +489,6 @@ export const dataBasicsQuizQuestions = [
     explanation: "The dependent variable is the outcome the model predicts, influenced by independent variables (features) that serve as inputs."
   },
   {
-    question: "What type of numerical data would 'temperature' be classified as?",
-    options: [
-      "Nominal data",
-      "Ordinal data",
-      "Discrete counts",
-      "Continuous data" // correct - index 3
-    ],
-    correctAnswer: "Continuous data",
-    explanation: "Temperature is continuous numerical data because it can take any value within a range, not just specific discrete points."
-  },
-  {
     question: "In house price prediction, what role do features like square footage and number of bedrooms play?",
     options: [
       "Target variables",
@@ -552,17 +498,6 @@ export const dataBasicsQuizQuestions = [
     ],
     correctAnswer: "Independent variables",
     explanation: "Square footage and bedrooms are independent variables (features) that help predict the dependent variable (house price)."
-  },
-  {
-    question: "Which of these is an example of ordinal categorical data?",
-    options: [
-      "Temperature readings",
-      "Names of cities",
-      "Size rankings (small, medium, large)", // correct - index 2
-      "Colors (red, blue, green)"
-    ],
-    correctAnswer: "Size rankings (small, medium, large)",
-    explanation: "Size rankings are ordinal because they have a meaningful order (small < medium < large), unlike nominal data like colors."
   },
   {
     question: "What is the relationship between features and the target variable in machine learning?",
@@ -633,39 +568,6 @@ export const dataPreprocessingQuizQuestions = [
     correctAnswer: "House price ($350,000)",
     explanation: "House price is continuous numerical data because it can take any value within a range, unlike discrete data with specific values."
   },
-  {
-    question: "What problem occurs when a machine learning dataset has 95% of samples in one class and 5% in another?",
-    options: [
-      "Feature scaling issue",
-      "Dimensionality problem",
-      "Class imbalance",
-      "Data leakage"
-    ],
-    correctAnswer: "Class imbalance",
-    explanation: "Class imbalance occurs when classes aren't equally represented, potentially biasing models toward the majority class and reducing minority class accuracy."
-  },
-  {
-    question: "Which technique creates new synthetic examples of the minority class to address imbalanced data?",
-    options: [
-      "Random undersampling",
-      "Feature selection",
-      "SMOTE (Synthetic Minority Over-sampling Technique)",
-      "Z-score normalization"
-    ],
-    correctAnswer: "SMOTE (Synthetic Minority Over-sampling Technique)",
-    explanation: "SMOTE generates synthetic examples of minority classes by interpolating between existing instances, helping balance class distribution."
-  },
-  {
-    question: "When handling categorical data like 'City' or 'Payment Method' for machine learning, what must typically be done?",
-    options: [
-      "Remove it from the dataset",
-      "Convert it to numerical representation",
-      "Keep it unchanged as text",
-      "Use only as labels, not features"
-    ],
-    correctAnswer: "Convert it to numerical representation",
-    explanation: "Categorical data must be converted to numerical format through techniques like one-hot encoding since most ML algorithms require numerical inputs."
-  }
 ];
 
 export const modelTrainingQuizQuestions = [
@@ -679,17 +581,6 @@ export const modelTrainingQuizQuestions = [
       ],
       correctAnswer: "A set of rules or steps the model follows to learn patterns from data",
       explanation: "An algorithm is a set of rules that processes input data, identifies patterns, and uses them to make predictions."
-    },
-    {
-      question: "What is logistic regression primarily used for?",
-      options: [
-        "Predicting numerical values",
-        "Classification tasks",
-        "Feature selection",
-        "Data cleaning"
-      ],
-      correctAnswer: "Classification tasks",
-      explanation: "Logistic regression predicts the probability of data belonging to a particular class, making it ideal for binary classification problems."
     },
     {
       question: "What is the recommended split ratio for training and test data?",
@@ -725,17 +616,6 @@ export const modelTrainingQuizQuestions = [
       explanation: "The prediction column contains the target values the model learns to predict and is used to evaluate prediction accuracy."
     },
     {
-      question: "Why are ID columns not used for training?",
-      options: [
-        "They contain too many unique values",
-        "They are too difficult to process",
-        "They do not provide meaningful patterns for predictions",
-        "They would make the model too accurate"
-      ],
-      correctAnswer: "They do not provide meaningful patterns for predictions",
-      explanation: "ID columns are just unique identifiers without predictive value and could lead to false patterns if included in training."
-    },
-    {
       question: "What is feature selection?",
       options: [
         "Creating new features from existing ones",
@@ -746,18 +626,7 @@ export const modelTrainingQuizQuestions = [
       correctAnswer: "Identifying the most relevant inputs for a model",
       explanation: "Feature selection identifies the most important variables for prediction, removing irrelevant or redundant features to improve model performance."
     },
-    {
-      question: "Which of the following is NOT a benefit of feature selection?",
-      options: [
-        "Reduces the risk of overfitting",
-        "Speeds up training",
-        "Guarantees 100% model accuracy",
-        "Eliminates noise from unnecessary data"
-      ],
-      correctAnswer: "Guarantees 100% model accuracy",
-      explanation: "Feature selection improves efficiency and can reduce overfitting, but it cannot guarantee perfect accuracy as other factors affect performance."
-    }
-  ];
+];
 
 export const modelEvaluationQuizQuestions = [
   {
@@ -805,28 +674,6 @@ export const modelEvaluationQuizQuestions = [
     explanation: "A false positive occurs when the model incorrectly predicts a positive outcome, like marking a legitimate email as spam."
   },
   {
-    question: "What does MAE stand for in regression evaluation?",
-    options: [
-      "Maximum Accuracy Estimate",
-      "Model Accuracy Evaluation",
-      "Mean Absolute Error",
-      "Multiple Algorithm Execution"
-    ],
-    correctAnswer: "Mean Absolute Error",
-    explanation: "MAE measures the average magnitude of errors in predictions, without considering their direction (positive or negative)."
-  },
-  {
-    question: "What does an R-squared value of 80 mean in regression?",
-    options: [
-      "The model is 80% fast",
-      "The model explains 80% of why the target values change",
-      "The model uses 80% of available data",
-      "The model has an 80% chance of being correct"
-    ],
-    correctAnswer: "The model explains 80% of why the target values change",
-    explanation: "An R-squared of 80 means the model explains 80% of the variance in the target variable, indicating good predictive power."
-  },
-  {
     question: "What is 'Recall' measuring in classification models?",
     options: [
       "How many times the model was retrained",
@@ -836,16 +683,5 @@ export const modelEvaluationQuizQuestions = [
     ],
     correctAnswer: "How many actual positives the model identified correctly",
     explanation: "Recall measures the proportion of actual positives correctly identified—like what percentage of all spam emails were caught."
-  },
-  {
-    question: "What are the four main components of a confusion matrix?",
-    options: [
-      "True Positives, True Negatives, False Positives, False Negatives",
-      "Accuracy, Precision, Recall, F1-Score",
-      "Training, Testing, Validation, Production",
-      "Learn, Evaluate, Adjust, Predict"
-    ],
-    correctAnswer: "True Positives, True Negatives, False Positives, False Negatives",
-    explanation: "A confusion matrix shows correct and incorrect predictions: true positives, true negatives, false positives, and false negatives."
   }
 ];
