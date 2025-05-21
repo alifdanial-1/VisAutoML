@@ -20,11 +20,11 @@ jobs:
 
       - name: Deploy to EC2 via SSH
         run: |
-          ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_PUBLIC_IP }} "
+          ssh -o StrictHostKeyChecking=no -o ServerAliveInterval=60 ubuntu@${{ secrets.EC2_PUBLIC_IP }} "
             echo 'Pulling latest code...' &&
             cd ~/VisAutoML &&
-            git fetch origin
-            git reset --hard origin/dev
+            git fetch origin &&
+            git reset --hard origin/dev &&
 
             echo 'Cleaning old frontend build artifacts...' &&
             rm -rf Frontend/build &&
