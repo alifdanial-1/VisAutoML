@@ -2223,7 +2223,7 @@ const Body = ({ backDialogOpen, setBackDialogOpen }) => {
               arrow
             >
               <Box>
-          <Button variant="contained" disabled={disabled} sx={{ borderRadius: "15px" }} onClick={onClick}>
+          <Button variant="contained" disabled={disabled} sx={{ borderRadius: "15px", marginRight: "3em" }} onClick={onClick}>
             Train Model
           </Button>
           </Box>

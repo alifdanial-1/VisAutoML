@@ -820,7 +820,7 @@ if __name__ == '__main__':
 
     print("========================")
 
-    db = ExplainerDashboard(explainer,boostrap=dbc.themes.LITERA,title=projecttitle,hide_poweredby=True,plot_sample=1000,
+    db = ExplainerDashboard(explainer,boostrap=dbc.themes.LITERA,title=projecttitle,hide_poweredby=True,plot_sample=1000, model_summary=False,
                             depth=10, 
                             header_hide_selector=True,hide_header=True,
                             shap_dependence=False,
