@@ -3543,8 +3543,8 @@ const Body = ({ backDialogOpen, setBackDialogOpen }) => {
               }}
             >
               <img 
-                src={`${process.env.PUBLIC_URL}/img/${model.type}.png`} 
-                alt={model.type}
+                src={`${process.env.PUBLIC_URL}/img/${model.type === "Classification" ? "classification" : model.type}.png`} 
+                alt={model.type === "Classification" ? "classification" : model.type}
                 style={{ 
                   width: 24, 
                   height: 24,

@@ -261,7 +261,7 @@ const EducationalFAB = ({ open, onToggle, onTaskStart, onTaskComplete, onQuizRed
           // Auto-hide notification after 3 seconds
           hideNotificationTimeout = setTimeout(() => {
             setShowNotification(false);
-          }, 2000);
+          }, 1000);
         }, 1000);
       }
       // Show quiz notification if tutorial completed but quiz not completed
@@ -274,7 +274,7 @@ const EducationalFAB = ({ open, onToggle, onTaskStart, onTaskComplete, onQuizRed
           // Auto-hide notification after 3 seconds
           hideNotificationTimeout = setTimeout(() => {
             setShowNotification(false);
-          }, 2000);
+          }, 1000);
         }, 1000);
       }
       

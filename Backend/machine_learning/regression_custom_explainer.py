@@ -826,6 +826,7 @@ if __name__ == '__main__':
         title=projecttitle, 
         hide_poweredby=True, 
         plot_sample=1000, 
+        model_summary=False,
         header_hide_selector=True, 
         hide_header=True, 
         shap_interaction=False,

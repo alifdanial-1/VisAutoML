@@ -413,7 +413,7 @@ const Body = ({ backDialogOpen, setBackDialogOpen }) => {
             // onClick={() => setOpenEdit(true)}
           >
               <div style={{ display: "flex", alignItems: "center" }}>
-                <img src={`${process.env.PUBLIC_URL}/img/${type}.png`} alt={type} />
+                <img src={`${process.env.PUBLIC_URL}/img/${type === "Classification" ? "classification" : type}.png`} alt={type === "Classification" ? "classification" : type} />
                 <span style={{ marginLeft: "5px" }}>{name}</span>
               </div>
           </Typography>
