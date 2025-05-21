@@ -20,7 +20,7 @@ jobs:
 
       - name: Deploy to EC2 via SSH
         run: |
-          ssh -o StrictHostKeyChecking=no -o ServerAliveInterval=60 ubuntu@${{ secrets.EC2_PUBLIC_IP }} "
+          ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_PUBLIC_IP }} "
             echo 'Pulling latest code...' &&
             cd ~/VisAutoML &&
             git fetch origin &&
