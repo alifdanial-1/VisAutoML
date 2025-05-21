@@ -27,4 +27,4 @@ This will start the Django development server at `http://localhost:8000`.
 Make sure to have both the frontend and backend running simultaneously for the full application to work properly.
 
 ## Running Tests
-This is to to test the deploy
+This is to to test the deploy2
