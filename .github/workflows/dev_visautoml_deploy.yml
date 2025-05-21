@@ -20,7 +20,7 @@ jobs:
 
       - name: Deploy to EC2 via SSH
         run: |
-          ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_PUBLIC_IP }} "
+          ssh -tt -o ServerAliveInterval=60 -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_PUBLIC_IP }} "
             echo 'Pulling latest code...' &&
             cd ~/VisAutoML &&
             git fetch origin &&
@@ -31,8 +31,8 @@ jobs:
 
             echo 'Installing frontend dependencies and building...' &&
             cd Frontend &&
-            npm install &&
-            npm run build &&
+            npm install --silent &&
+            npm run build --silent &&
 
             echo 'Copying frontend to web server directory...' &&
             sudo rm -rf /var/www/vhosts/frontend/ &&
@@ -41,8 +41,8 @@ jobs:
 
             echo 'Setting up backend...' &&
             cd ../Backend &&
-            python3 -m venv my_venv &&
-            source my_venv/bin/activate &&
+            python3 -m venv venv &&
+            source venv/bin/activate &&
             pip install -r requirements.txt &&
 
             echo 'Applying DB migrations...' &&
