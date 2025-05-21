@@ -400,7 +400,7 @@ const Body = ({ backDialogOpen, setBackDialogOpen }) => {
               </IconButton>
             </Box>
             {/* middle Grid */}
-            <Grid item display="flex" justifyContent="center" alignItems="center" sx={{mainTop: "30px", marginRight:"5em"}}>            
+            {/* <Grid item display="flex" justifyContent="center" alignItems="center" sx={{mainTop: "30px", marginRight:"5em"}}>            
               <Typography
             sx={{
               fontSize: "1.5rem",
@@ -416,9 +416,9 @@ const Body = ({ backDialogOpen, setBackDialogOpen }) => {
                 <img src={`${process.env.PUBLIC_URL}/img/${type === "Classification" ? "classification" : type}.png`} alt={type === "Classification" ? "classification" : type} />
                 <span style={{ marginLeft: "5px" }}>{name}</span>
               </div>
-          </Typography>
+          </Typography> */}
             {/* help button grid */}
-            </Grid>
+            {/* </Grid> */} 
             <Grid item display="flex" justifyContent="center" alignItems="center" sx={{mainTop: "30px"}}>      
             <CustomTooltip
                 open={tooltipId === 34 ? true : false}
